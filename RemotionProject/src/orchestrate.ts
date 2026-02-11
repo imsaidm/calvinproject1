@@ -7,6 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
 import { transcribeForSubtitles, SubtitleChunk } from './services/transcribe';
+import { getStyleConfig } from './visualStyles';
 
 dotenv.config();
 
@@ -214,9 +215,19 @@ async function main() {
         // To enable: ensure logo.png is in public/ BEFORE bundling
         const finalLogo: string | undefined = undefined;
 
-        // Music - convert to PCM WAV and trim to video duration (Chromium headless requires WAV)
+        // Music - select based on visual style, convert to PCM WAV
+        const styleConfig = getStyleConfig(inputs.style);
         let finalMusicUrl: string | undefined = undefined;
-        const musicSrc = path.join(process.cwd(), 'assets', 'music', 'inspirational.mp3');
+
+        // Try style-specific music first, fallback to inspirational.mp3
+        const styleMusicFile = styleConfig.musicFile;
+        let musicSrc = path.join(process.cwd(), 'assets', 'music', styleMusicFile);
+        if (!fs.existsSync(musicSrc)) {
+            console.log(`🎵 No style music "${styleMusicFile}", using default`);
+            musicSrc = path.join(process.cwd(), 'assets', 'music', 'inspirational.mp3');
+        } else {
+            console.log(`🎵 Using style music: ${styleMusicFile}`);
+        }
         if (fs.existsSync(musicSrc)) {
             try {
                 const ffmpegPath = require('ffmpeg-static');
@@ -279,9 +290,9 @@ async function main() {
             introDuration: introDuration,
             outroDuration: outroDuration,
             voiceDuration: scriptData.voiceDuration || (finalDuration - introDuration - outroDuration),
-            // Branding
-            primaryColor: brandingConfig.primaryColor || '#1a1a2e',
-            accentColor: brandingConfig.accentColor || '#06b6d4',
+            // Branding - use style colors, fallback to branding config
+            primaryColor: styleConfig.primaryColor || brandingConfig.primaryColor || '#1a1a2e',
+            accentColor: styleConfig.accentColor || brandingConfig.accentColor || '#06b6d4',
             cta: scriptData.cta || brandingConfig.cta || 'Watch Now',
             musicUrl: finalMusicUrl,
             // Captions
@@ -290,7 +301,9 @@ async function main() {
             // Whisper-based subtitle timestamps (if available)
             subtitleTimestamps: subtitleTimestamps || undefined,
             // Scene segments
-            segments: segments
+            segments: segments,
+            // Visual Style
+            visualStyle: inputs.style
         };
 
 

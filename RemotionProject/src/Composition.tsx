@@ -3,6 +3,7 @@ import { AbsoluteFill, Audio, Img, useVideoConfig, useCurrentFrame, interpolate,
 import { z } from 'zod';
 import { CinematicBackground } from './Slideshow';
 import { Subtitles, generateSubtitleEntries, type SubtitleEntry } from './Subtitles';
+import { getStyleConfig, type StyleConfig } from './visualStyles';
 
 // Segment data schema - Single image per scene
 const SegmentSchema = z.object({
@@ -41,11 +42,13 @@ export const VideoSchema = z.object({
     // Whisper-based subtitle timestamps
     subtitleTimestamps: z.array(SubtitleTimestampSchema).optional(),
     // Scene-based segments
-    segments: z.array(SegmentSchema).optional()
+    segments: z.array(SegmentSchema).optional(),
+    // Visual Style
+    visualStyle: z.string().default('Documentary')
 });
 
 // ============================================================
-// SCENE COMPONENT - Clean Documentary Style
+// SCENE COMPONENT - Style-Aware
 // ============================================================
 const Scene: React.FC<{
     sceneTitle: string;
@@ -54,20 +57,15 @@ const Scene: React.FC<{
     sceneDuration: number;
     primaryColor: string;
     accentColor: string;
-}> = ({ sceneTitle, imageUrl, sceneIndex, sceneDuration, primaryColor, accentColor }) => {
+    style: StyleConfig;
+}> = ({ sceneTitle, imageUrl, sceneIndex, sceneDuration, primaryColor, accentColor, style }) => {
     const frame = useCurrentFrame();
     const { fps } = useVideoConfig();
-    const totalSceneFrames = sceneDuration * fps;
 
     // --- ANIMATIONS ---
-    // Smooth cross-dissolve (fade in first 0.5s)
     const fadeIn = interpolate(frame, [0, fps * 0.5], [0, 1], { extrapolateRight: 'clamp' });
-
-    // Title slide up + fade
     const titleY = interpolate(frame, [0, fps], [20, 0], { extrapolateRight: 'clamp' });
     const titleOpacity = interpolate(frame, [0, fps], [0, 1], { extrapolateRight: 'clamp' });
-
-    // Decorative line expand
     const lineWidth = interpolate(frame, [fps * 0.2, fps * 1.2], [0, 100], { extrapolateRight: 'clamp' });
 
     // Vary Ken Burns direction based on scene index
@@ -83,40 +81,46 @@ const Scene: React.FC<{
                 direction={direction}
             />
 
-            {/* Cinematic Gradient Overlay (Darker at bottom for text) */}
+            {/* Style-specific Gradient Overlay */}
             <AbsoluteFill style={{
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.9) 100%)'
+                background: style.sceneOverlayGradient
             }} />
 
-            {/* Lower Third Content */}
+            {/* Lower Third Content - RIGHT aligned */}
             <AbsoluteFill style={{
                 justifyContent: 'flex-end',
+                alignItems: 'flex-end',
                 padding: '0 60px 80px 60px'
             }}>
                 {/* Scene Title Group */}
                 <div style={{
                     transform: `translateY(${titleY}px)`,
-                    opacity: titleOpacity
+                    opacity: titleOpacity,
+                    textAlign: 'right'
                 }}>
-                    {/* Animated Accent Line */}
+                    {/* Animated Accent Line - right aligned */}
                     <div style={{
                         width: `${lineWidth}px`,
                         height: 4,
                         backgroundColor: accentColor,
                         marginBottom: 16,
-                        boxShadow: `0 0 10px ${accentColor}88`
+                        marginLeft: 'auto',
+                        boxShadow: style.accentLineGlow ? `0 0 15px ${accentColor}, 0 0 30px ${accentColor}55` : `0 0 10px ${accentColor}88`,
+                        borderRadius: 2
                     }} />
 
                     {/* Scene Title */}
                     <h2 style={{
-                        fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+                        fontFamily: style.fontFamily,
                         fontSize: 56,
-                        fontWeight: 600,
+                        fontWeight: style.titleFontWeight,
                         color: 'white',
                         margin: 0,
                         textTransform: 'uppercase',
                         letterSpacing: '0.05em',
-                        textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+                        textShadow: style.accentLineGlow
+                            ? `0 0 20px ${accentColor}66, 0 2px 10px rgba(0,0,0,0.5)`
+                            : '0 2px 10px rgba(0,0,0,0.5)'
                     }}>
                         {sceneTitle}
                     </h2>
@@ -127,13 +131,15 @@ const Scene: React.FC<{
 };
 
 // ============================================================
-// INTRO SCREEN - Elegant & Cinematic
+// INTRO SCREEN - Style-Aware
 // ============================================================
 const IntroScreen: React.FC<{
     title: string;
     primaryColor: string;
     accentColor: string;
-}> = ({ title, primaryColor, accentColor }) => {
+    style: StyleConfig;
+    visualStyleName: string;
+}> = ({ title, primaryColor, accentColor, style, visualStyleName }) => {
     const frame = useCurrentFrame();
     const { fps } = useVideoConfig();
 
@@ -144,9 +150,16 @@ const IntroScreen: React.FC<{
     const opacity = interpolate(frame, [0, fps], [0, 1], { extrapolateRight: 'clamp' });
     const translateY = interpolate(frame, [0, fps], [30, 0], { extrapolateRight: 'clamp' });
 
+    // Minimalist: dark text on light bg
+    const isLight = visualStyleName === 'Minimalist';
+    const textColor = isLight ? '#1e293b' : 'white';
+
+    // Cyberpunk scanline effect
+    const scanlineY = interpolate(frame, [0, fps * 3], [0, 1080], { extrapolateRight: 'extend' });
+
     return (
         <AbsoluteFill style={{
-            background: 'linear-gradient(135deg, #050505 0%, #1a1a1a 100%)',
+            background: style.introGradient,
             justifyContent: 'center',
             alignItems: 'center',
             overflow: 'hidden'
@@ -158,10 +171,46 @@ const IntroScreen: React.FC<{
                 left: '-50%',
                 width: '200%',
                 height: '200%',
-                background: `radial-gradient(circle at 50% 50%, ${primaryColor}15 0%, transparent 60%)`,
+                background: `radial-gradient(circle at 50% 50%, ${style.introGlow} 0%, transparent 60%)`,
                 transform: `scale(${scale})`,
                 opacity: 0.8
             }} />
+
+            {/* Cyberpunk: Scanlines */}
+            {visualStyleName === 'Cyberpunk' && (
+                <>
+                    <div style={{
+                        position: 'absolute',
+                        inset: 0,
+                        backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,255,0.03) 2px, rgba(0,255,255,0.03) 4px)`,
+                        zIndex: 1
+                    }} />
+                    <div style={{
+                        position: 'absolute',
+                        left: 0,
+                        right: 0,
+                        top: scanlineY % 1080,
+                        height: 2,
+                        backgroundColor: 'rgba(0,255,255,0.15)',
+                        boxShadow: '0 0 20px rgba(0,255,255,0.3)',
+                        zIndex: 2
+                    }} />
+                </>
+            )}
+
+            {/* Cinematic: Letterbox bars */}
+            {visualStyleName === 'Cinematic' && (
+                <>
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0,
+                        height: 80, backgroundColor: '#000', zIndex: 5
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        height: 80, backgroundColor: '#000', zIndex: 5
+                    }} />
+                </>
+            )}
 
             {/* Main Title */}
             <div style={{
@@ -171,25 +220,30 @@ const IntroScreen: React.FC<{
                 zIndex: 10
             }}>
                 <h1 style={{
-                    fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
-                    fontSize: 80,
-                    fontWeight: 800,
-                    color: 'white',
+                    fontFamily: style.fontFamily,
+                    fontSize: visualStyleName === 'Minimalist' ? 64 : 80,
+                    fontWeight: style.titleFontWeight,
+                    color: textColor,
                     margin: '0 0 20px 0',
                     lineHeight: 1.1,
                     maxWidth: '80vw',
-                    textShadow: '0 10px 30px rgba(0,0,0,0.5)'
+                    textShadow: visualStyleName === 'Cyberpunk'
+                        ? `0 0 30px ${accentColor}88, 0 0 60px ${primaryColor}44`
+                        : isLight
+                            ? 'none'
+                            : '0 10px 30px rgba(0,0,0,0.5)'
                 }}>
                     {title}
                 </h1>
 
                 {/* Underline */}
                 <div style={{
-                    width: 120,
-                    height: 6,
+                    width: visualStyleName === 'Minimalist' ? 60 : 120,
+                    height: visualStyleName === 'Minimalist' ? 2 : 6,
                     background: `linear-gradient(90deg, ${primaryColor}, ${accentColor})`,
                     margin: '0 auto',
-                    borderRadius: 3
+                    borderRadius: 3,
+                    boxShadow: style.accentLineGlow ? `0 0 15px ${accentColor}` : 'none'
                 }} />
             </div>
         </AbsoluteFill>
@@ -197,40 +251,71 @@ const IntroScreen: React.FC<{
 };
 
 // ============================================================
-// OUTRO SCREEN - Minimalist Call to Action
+// OUTRO SCREEN - Style-Aware
 // ============================================================
 const OutroScreen: React.FC<{
     cta: string;
     title: string;
     primaryColor: string;
     accentColor: string;
-}> = ({ cta, title, primaryColor, accentColor }) => {
+    style: StyleConfig;
+    visualStyleName: string;
+}> = ({ cta, title, primaryColor, accentColor, style, visualStyleName }) => {
     const frame = useCurrentFrame();
     const { fps } = useVideoConfig();
 
     const opacity = interpolate(frame, [0, fps * 0.5], [0, 1], { extrapolateRight: 'clamp' });
     const scale = interpolate(frame, [0, fps], [0.95, 1], { extrapolateRight: 'clamp' });
 
+    const isLight = visualStyleName === 'Minimalist';
+    const thanksColor = isLight ? '#94a3b8' : style.outroCta;
+    const ctaColor = isLight ? '#1e293b' : 'white';
+
     return (
         <AbsoluteFill style={{
-            background: '#050505',
+            background: style.outroBackground,
             justifyContent: 'center',
             alignItems: 'center',
             opacity
         }}>
-            {/* Simple Background Gradient */}
+            {/* Background Gradient */}
             <AbsoluteFill style={{
-                background: `radial-gradient(circle at 50% 50%, ${primaryColor}08 0%, transparent 70%)`
+                background: `radial-gradient(circle at 50% 50%, ${style.introGlow} 0%, transparent 70%)`
             }} />
+
+            {/* Cinematic: Letterbox bars */}
+            {visualStyleName === 'Cinematic' && (
+                <>
+                    <div style={{
+                        position: 'absolute', top: 0, left: 0, right: 0,
+                        height: 80, backgroundColor: '#000', zIndex: 5
+                    }} />
+                    <div style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0,
+                        height: 80, backgroundColor: '#000', zIndex: 5
+                    }} />
+                </>
+            )}
+
+            {/* Cyberpunk: Scanlines */}
+            {visualStyleName === 'Cyberpunk' && (
+                <div style={{
+                    position: 'absolute',
+                    inset: 0,
+                    backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,255,0.03) 2px, rgba(0,255,255,0.03) 4px)`,
+                    zIndex: 1
+                }} />
+            )}
 
             <div style={{
                 textAlign: 'center',
-                transform: `scale(${scale})`
+                transform: `scale(${scale})`,
+                zIndex: 10
             }}>
                 <p style={{
-                    fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+                    fontFamily: style.fontFamily,
                     fontSize: 32,
-                    color: '#888',
+                    color: thanksColor,
                     margin: '0 0 24px 0',
                     letterSpacing: '0.1em',
                     textTransform: 'uppercase'
@@ -239,12 +324,14 @@ const OutroScreen: React.FC<{
                 </p>
 
                 <h2 style={{
-                    fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+                    fontFamily: style.fontFamily,
                     fontSize: 64,
-                    fontWeight: 700,
-                    color: 'white',
+                    fontWeight: style.titleFontWeight,
+                    color: ctaColor,
                     margin: 0,
-                    textShadow: `0 0 30px ${primaryColor}44`
+                    textShadow: visualStyleName === 'Cyberpunk'
+                        ? `0 0 30px ${accentColor}88`
+                        : `0 0 30px ${primaryColor}44`
                 }}>
                     {cta}
                 </h2>
@@ -256,7 +343,7 @@ const OutroScreen: React.FC<{
                     backgroundColor: accentColor,
                     borderRadius: '50%',
                     margin: '30px auto 0 auto',
-                    boxShadow: `0 0 15px ${accentColor}`
+                    boxShadow: style.accentLineGlow ? `0 0 20px ${accentColor}` : `0 0 15px ${accentColor}`
                 }} />
             </div>
         </AbsoluteFill>
@@ -282,9 +369,13 @@ export const MyComposition: React.FC<z.infer<typeof VideoSchema>> = ({
     durationInSeconds,
     introDuration = 3,
     outroDuration = 3,
-    voiceDuration
+    voiceDuration,
+    visualStyle = 'Documentary'
 }) => {
     const { fps } = useVideoConfig();
+
+    // Get style config
+    const styleConfig = getStyleConfig(visualStyle);
 
     // Calculate content timing
     const contentSeconds = durationInSeconds - introDuration - outroDuration;
@@ -296,10 +387,9 @@ export const MyComposition: React.FC<z.infer<typeof VideoSchema>> = ({
 
         // PRIORITY 1: Use Whisper word-level timestamps (most accurate)
         if (subtitleTimestamps && subtitleTimestamps.length > 0) {
-            console.log(`📝 Using ${subtitleTimestamps.length} Whisper-timed subtitle chunks`);
+            console.log(`Using ${subtitleTimestamps.length} Whisper-timed subtitle chunks`);
             return subtitleTimestamps.map(chunk => ({
                 text: chunk.text,
-                // Offset by introDuration since Whisper timestamps start at 0
                 startFrame: Math.round((introDuration + chunk.startTime) * fps),
                 endFrame: Math.round((introDuration + chunk.endTime) * fps),
             }));
@@ -329,7 +419,7 @@ export const MyComposition: React.FC<z.infer<typeof VideoSchema>> = ({
     const outroFrames = Math.round(outroDuration * fps);
 
     return (
-        <AbsoluteFill style={{ backgroundColor: '#050505' }}>
+        <AbsoluteFill style={{ backgroundColor: styleConfig.backgroundColor }}>
             {/* Audio Layers - Using staticFile for safety */}
             {musicUrl && (
                 <Audio src={staticFile(musicUrl.replace(/^\//, ''))} volume={0.15} loop />
@@ -354,44 +444,25 @@ export const MyComposition: React.FC<z.infer<typeof VideoSchema>> = ({
                     title={title}
                     primaryColor={primaryColor}
                     accentColor={accentColor}
+                    style={styleConfig}
+                    visualStyleName={visualStyle}
                 />
             </Sequence>
 
-            {/* --- SEQUENCE 2: SCENE 1 --- */}
-            <Sequence from={introFrames} durationInFrames={segmentFrames}>
-                <Scene
-                    sceneTitle={activeSegments[0].title}
-                    imageUrl={activeSegments[0].imageUrl}
-                    sceneIndex={0}
-                    sceneDuration={segmentSeconds}
-                    primaryColor={primaryColor}
-                    accentColor={accentColor}
-                />
-            </Sequence>
-
-            {/* --- SEQUENCE 3: SCENE 2 --- */}
-            <Sequence from={introFrames + segmentFrames} durationInFrames={segmentFrames}>
-                <Scene
-                    sceneTitle={activeSegments[1].title}
-                    imageUrl={activeSegments[1].imageUrl}
-                    sceneIndex={1}
-                    sceneDuration={segmentSeconds}
-                    primaryColor={primaryColor}
-                    accentColor={accentColor}
-                />
-            </Sequence>
-
-            {/* --- SEQUENCE 4: SCENE 3 --- */}
-            <Sequence from={introFrames + segmentFrames * 2} durationInFrames={segmentFrames}>
-                <Scene
-                    sceneTitle={activeSegments[2].title}
-                    imageUrl={activeSegments[2].imageUrl}
-                    sceneIndex={2}
-                    sceneDuration={segmentSeconds}
-                    primaryColor={primaryColor}
-                    accentColor={accentColor}
-                />
-            </Sequence>
+            {/* --- SCENES --- */}
+            {activeSegments.map((seg, i) => (
+                <Sequence key={i} from={introFrames + segmentFrames * i} durationInFrames={segmentFrames}>
+                    <Scene
+                        sceneTitle={seg.title}
+                        imageUrl={seg.imageUrl}
+                        sceneIndex={i}
+                        sceneDuration={segmentSeconds}
+                        primaryColor={primaryColor}
+                        accentColor={accentColor}
+                        style={styleConfig}
+                    />
+                </Sequence>
+            ))}
 
             {/* --- SEQUENCE 5: OUTRO --- */}
             <Sequence from={introFrames + segmentFrames * 3} durationInFrames={outroFrames}>
@@ -400,12 +471,21 @@ export const MyComposition: React.FC<z.infer<typeof VideoSchema>> = ({
                     title={title}
                     primaryColor={primaryColor}
                     accentColor={accentColor}
+                    style={styleConfig}
+                    visualStyleName={visualStyle}
                 />
             </Sequence>
 
             {/* --- OVERLAY: SUBTITLES --- */}
             {enableCaptions && (
-                <Subtitles subtitles={subtitleEntries} primaryColor={primaryColor} />
+                <Subtitles
+                    subtitles={subtitleEntries}
+                    primaryColor={primaryColor}
+                    subtitleBg={styleConfig.subtitleBg}
+                    subtitleBorder={styleConfig.subtitleBorder}
+                    fontFamily={styleConfig.fontFamily}
+                    isLight={visualStyle === 'Minimalist'}
+                />
             )}
         </AbsoluteFill>
     );

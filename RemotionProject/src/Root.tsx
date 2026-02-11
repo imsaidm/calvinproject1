@@ -17,13 +17,14 @@ export const RemotionRoot: React.FC = () => {
                     title: "AI VIDEO GENERATOR",
                     script: "Waiting for AI content...",
                     durationInSeconds: 30,
-                    voiceDuration: 24, // Example duration for preview
+                    voiceDuration: 24,
                     primaryColor: "#ff0055",
                     accentColor: "#22c55e",
                     cta: "Watch Now",
                     enableCaptions: true,
                     introDuration: 3,
-                    outroDuration: 3
+                    outroDuration: 3,
+                    visualStyle: "Documentary"
                 }}
                 calculateMetadata={({ props }) => {
                     return {

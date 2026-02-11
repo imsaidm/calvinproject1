@@ -53,7 +53,11 @@ export function generateSubtitleEntries(
 export const Subtitles: React.FC<{
     subtitles: SubtitleEntry[];
     primaryColor?: string;
-}> = ({ subtitles, primaryColor = '#ff0055' }) => {
+    subtitleBg?: string;
+    subtitleBorder?: string;
+    fontFamily?: string;
+    isLight?: boolean;
+}> = ({ subtitles, primaryColor = '#ff0055', subtitleBg, subtitleBorder, fontFamily, isLight }) => {
     const frame = useCurrentFrame();
     const { fps } = useVideoConfig();
 
@@ -94,7 +98,8 @@ export const Subtitles: React.FC<{
             <div
                 style={{
                     opacity,
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    backgroundColor: subtitleBg || 'rgba(0, 0, 0, 0.7)',
+                    border: subtitleBorder || 'none',
                     padding: '14px 28px',
                     borderRadius: 6,
                     maxWidth: '75%',
@@ -102,13 +107,13 @@ export const Subtitles: React.FC<{
             >
                 <p
                     style={{
-                        fontFamily: "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+                        fontFamily: fontFamily || "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
                         fontSize: 34,
-                        color: 'white',
+                        color: isLight ? '#1e293b' : 'white',
                         margin: 0,
                         textAlign: 'center',
                         lineHeight: 1.4,
-                        textShadow: '0 1px 4px rgba(0,0,0,0.4)',
+                        textShadow: isLight ? 'none' : '0 1px 4px rgba(0,0,0,0.4)',
                     }}
                 >
                     {currentSub.text}
