@@ -86,25 +86,24 @@ const Scene: React.FC<{
                 background: style.sceneOverlayGradient
             }} />
 
-            {/* Lower Third Content - RIGHT aligned */}
+            {/* Scene Title - TOP LEFT */}
             <AbsoluteFill style={{
-                justifyContent: 'flex-end',
-                alignItems: 'flex-end',
-                padding: '0 60px 80px 60px'
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
+                padding: '80px 60px 0 60px'
             }}>
                 {/* Scene Title Group */}
                 <div style={{
                     transform: `translateY(${titleY}px)`,
                     opacity: titleOpacity,
-                    textAlign: 'right'
+                    textAlign: 'left'
                 }}>
-                    {/* Animated Accent Line - right aligned */}
+                    {/* Animated Accent Line */}
                     <div style={{
                         width: `${lineWidth}px`,
                         height: 4,
                         backgroundColor: accentColor,
                         marginBottom: 16,
-                        marginLeft: 'auto',
                         boxShadow: style.accentLineGlow ? `0 0 15px ${accentColor}, 0 0 30px ${accentColor}55` : `0 0 10px ${accentColor}88`,
                         borderRadius: 2
                     }} />
