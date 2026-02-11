@@ -1,0 +1,8 @@
+node_modules
+out/*.mp4
+*.log
+.env
+temp-props-*.json
+temp_tts_*.ps1
+ffmpeg.exe
+RemotionProject_Submission.zip

@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+:root {
+  --bg-color: #09090b;
+  --card-bg: rgba(24, 24, 27, 0.6);
+  --primary: #8b5cf6;
+  /* Violet */
+  --primary-hover: #7c3aed;
+  --text-main: #fafafa;
+  --text-muted: #a1a1aa;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-zinc-900/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-lg;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-br from-violet-500 to-indigo-600 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 hover:opacity-90 hover:scale-[1.02] shadow-xl shadow-violet-500/20 disabled:opacity-50 disabled:hover:scale-100;
+  }
+}
+
+/* Custom Input Styles (Tailwind overrides) */
+input,
+select,
+textarea {
+  @apply bg-black/20 border border-white/10 text-white p-3 rounded-lg w-full mb-4 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all;
+}
+
+label {
+  @apply block text-sm font-medium text-gray-400 mb-2;
+}

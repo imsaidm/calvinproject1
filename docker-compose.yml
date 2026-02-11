@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # ============================================================
+  # VIDEO ENGINE - Backend (Remotion + Claude + ffmpeg)
+  # ============================================================
+  video-engine:
+    build:
+      context: ./RemotionProject
+      dockerfile: Dockerfile
+    container_name: csh-video-engine
+    restart: unless-stopped
+    shm_size: '2gb'
+    ports:
+      - "8124:4000"
+    environment:
+      # Pexels API Key
+      PEXELS_API_KEY: ${PEXELS_API_KEY}
+      # Groq API Key
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      # Your API Keys
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      WAVESPEED_API_KEY: ${WAVESPEED_API_KEY}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      # Public URL for the backend (used by frontend)
+      # If using aaPanel Reverse Proxy, this should be your https://api.domain.com
+      PUBLIC_URL: ${PUBLIC_URL}
+      PORT: 4000
+    volumes:
+      # Persist generated videos
+      - video-output:/app/out
+      # Persist assets (logos, music, branding config)
+      - ./RemotionProject/assets:/app/assets
+      # Persist voiceover files
+      - video-public:/app/public
+    networks:
+      - video-net
+
+  # ============================================================
+  # WEB DASHBOARD - Frontend (React + Vite)
+  # ============================================================
+  web-dashboard:
+    build:
+      context: ./web-ui
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${PUBLIC_URL:-http://localhost:4000}
+    container_name: csh-web-dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - video-engine
+    networks:
+      - video-net
+
+volumes:
+  video-output:
+  video-public:
+
+
+networks:
+  video-net:
+    driver: bridge

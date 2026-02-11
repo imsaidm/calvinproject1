@@ -1,0 +1,13 @@
+{
+    "title": "Verification Test",
+    "tagline": "Powered by Claude & Remotion",
+    "primaryColor": "#00ff00",
+    "accentColor": "#06b6d4",
+    "features": [
+        "Auto-generate product demos",
+        "Centralized branding assets",
+        "WaveSpeed voiceover integration"
+    ],
+    "cta": "It Works!",
+    "durationSeconds": 20
+}

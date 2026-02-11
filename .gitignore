@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Environment files (contains secrets!)
+.env
+!.env.example
+
+# Build outputs
+web-ui/dist/
+RemotionProject/out/
+
+# Large binaries
+RemotionProject/ffmpeg.exe
+
+# Logs
+*.log
+logs/
+RemotionProject/render_log*.txt
+RemotionProject/server.log
+RemotionProject/log*.txt
+RemotionProject/tsc_errors.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+nul
+
+# Editor
+.vscode/
+.idea/
+
+# Temp files
+*.tmp
+temp/
+
+# Private notes
+Chatwithclient.txt
+
+# Claude Code
+.claude/
