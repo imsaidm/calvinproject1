@@ -70,48 +70,86 @@ async function main() {
             console.warn("⚠️ Using fallback script.");
         }
 
-        // 4. Fetch 3 images (1 per segment) - Pexels API or picsum fallback
-        const imageQueries: string[] = scriptData.imageQueries && scriptData.imageQueries.length >= 3
-            ? scriptData.imageQueries.slice(0, 3)
+        // 4. Fetch 9 images (3 per segment) + 3 videos (1 per segment) from Pexels
+        const imageQueries: string[] = scriptData.imageQueries && scriptData.imageQueries.length >= 9
+            ? scriptData.imageQueries.slice(0, 9)
             : [
-                `${inputs.topic} scene 1`,
-                `${inputs.topic} scene 2`,
-                `${inputs.topic} scene 3`
+                `${inputs.topic} scene overview`,
+                `${inputs.topic} detail close-up`,
+                `${inputs.topic} wide angle`,
+                `${inputs.topic} action moment`,
+                `${inputs.topic} people interaction`,
+                `${inputs.topic} environment`,
+                `${inputs.topic} dramatic angle`,
+                `${inputs.topic} aerial perspective`,
+                `${inputs.topic} close detail`
             ];
 
         let images: string[] = [];
+        let videoClips: string[] = [];
         const pexelsKey = process.env.PEXELS_API_KEY;
 
         if (pexelsKey) {
-            console.log("🖼️ Fetching images from Pexels API...");
+            // Fetch 9 images
+            console.log("🖼️ Fetching 9 images from Pexels API...");
             for (const query of imageQueries) {
                 try {
-                    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`, {
+                    // Randomize page to get diverse results
+                    const page = Math.floor(Math.random() * 3) + 1;
+                    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=3&page=${page}&orientation=landscape`, {
                         headers: { Authorization: pexelsKey }
                     });
                     if (res.ok) {
                         const data = await res.json();
                         if (data.photos && data.photos.length > 0) {
-                            images.push(data.photos[0].src.large2x); // Use high res
-                            console.log(`   ✅ Pexels found: "${query}"`);
+                            // Pick a random photo from the results for diversity
+                            const photo = data.photos[Math.floor(Math.random() * data.photos.length)];
+                            images.push(photo.src.large2x);
+                            console.log(`   ✅ Pexels image: "${query}"`);
                             continue;
                         }
-                    } else {
-                        console.warn(`   ⚠️ Pexels error: ${res.status} ${res.statusText}`);
                     }
                 } catch (e: any) {
-                    console.warn(`   ⚠️ Pexels fetch failed for "${query}": ${e.message}`);
+                    console.warn(`   ⚠️ Pexels image failed for "${query}": ${e.message}`);
                 }
-                // Fallback for this specific query
-                console.log(`   ⚠️ Using fallback for "${query}"`);
-                images.push(`https://picsum.photos/seed/${encodeURIComponent(query)}/1600/900`);
+                images.push(`https://picsum.photos/seed/${encodeURIComponent(query + Date.now())}/1600/900`);
+            }
+
+            // Fetch 3 video clips (1 per segment, using first query of each segment)
+            console.log("🎬 Fetching 3 video clips from Pexels...");
+            const videoQueries = [imageQueries[0], imageQueries[3], imageQueries[6]];
+            for (const query of videoQueries) {
+                try {
+                    const res = await fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(query)}&per_page=3&orientation=landscape&size=medium`, {
+                        headers: { Authorization: pexelsKey }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.videos && data.videos.length > 0) {
+                            const vid = data.videos[Math.floor(Math.random() * data.videos.length)];
+                            // Pick HD quality file
+                            const vidFile = vid.video_files.find((f: any) => f.quality === 'hd' && f.width >= 1280)
+                                || vid.video_files.find((f: any) => f.quality === 'sd')
+                                || vid.video_files[0];
+                            if (vidFile) {
+                                videoClips.push(vidFile.link);
+                                console.log(`   ✅ Pexels video: "${query}"`);
+                                continue;
+                            }
+                        }
+                    }
+                } catch (e: any) {
+                    console.warn(`   ⚠️ Pexels video failed for "${query}": ${e.message}`);
+                }
+                videoClips.push(''); // No video clip for this segment
             }
         } else {
             console.log("🖼️ No PEXELS_API_KEY - using picsum fallback images");
-            images = imageQueries.map(q => `https://picsum.photos/seed/${encodeURIComponent(q)}/1600/900`);
+            images = imageQueries.map((q, i) => `https://picsum.photos/seed/${encodeURIComponent(q + i)}/1600/900`);
+            videoClips = ['', '', ''];
         }
 
-        console.log(`🖼️ ${images.length} scene images ready`);
+        console.log(`🖼️ ${images.length} images + ${videoClips.filter(v => v).length} video clips ready`);
 
         // 5. Generate Voiceover
         let voicePath = "";
@@ -247,22 +285,28 @@ async function main() {
         // 7. Build full narration for captions
         const fullNarration = `${scriptData.segment1}. ${scriptData.segment2}. ${scriptData.segment3}. ${scriptData.cta}`;
 
-        // 8. Build scene-based segments (1 image per segment for cinematic look)
+        // 8. Build scene-based segments (3 images + 1 video per segment)
         const segments = [
             {
                 title: scriptData.segment1Title || 'Introduction',
                 narration: scriptData.segment1,
-                imageUrl: images[0]
+                imageUrl: images[0],
+                imageUrls: [images[0], images[1], images[2]].filter(Boolean),
+                videoUrl: videoClips[0] || undefined
             },
             {
                 title: scriptData.segment2Title || 'The Story',
                 narration: scriptData.segment2,
-                imageUrl: images[1]
+                imageUrl: images[3] || images[1],
+                imageUrls: [images[3], images[4], images[5]].filter(Boolean),
+                videoUrl: videoClips[1] || undefined
             },
             {
                 title: scriptData.segment3Title || 'Conclusion',
                 narration: scriptData.segment3,
-                imageUrl: images[2]
+                imageUrl: images[6] || images[2],
+                imageUrls: [images[6], images[7], images[8]].filter(Boolean),
+                videoUrl: videoClips[2] || undefined
             }
         ];
 

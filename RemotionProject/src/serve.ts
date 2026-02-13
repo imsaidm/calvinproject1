@@ -261,7 +261,7 @@ app.get('/api/autofill', async (req, res) => {
 
         const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-        const styles = ['Documentary', 'Cyberpunk', 'Minimalist', 'Cinematic', 'ExplainLikeIm5'];
+        const styles = ['Documentary', 'Cyberpunk', 'Minimalist', 'Cinematic', 'ExplainLikeIm5', 'NatureDocs', 'TechReview', 'Horror'];
         const durations = ['30s', '60s', '90s', '120s', '150s', '180s'];
 
         const msg = await anthropic.messages.create({
@@ -306,12 +306,57 @@ RULES:
         if (!styles.includes(idea.style)) idea.style = 'Documentary';
         if (!durations.includes(idea.duration)) idea.duration = '60s';
 
-        log(`Auto-fill generated: "${idea.title}"`);
+        // Add music track to the response
+        const { getTracksForStyle: getTracksForStyleFn } = await import('./music-library');
+        const compatibleTracks = getTracksForStyleFn(idea.style);
+        if (compatibleTracks.length > 0) {
+            idea.musicTrack = compatibleTracks[Math.floor(Math.random() * compatibleTracks.length)].id;
+        }
+
+        log(`Auto-fill generated: "${idea.title}" (music: ${idea.musicTrack || 'none'})`);
         res.json(idea);
 
     } catch (error: any) {
         log(`Auto-fill error: ${error.message}`);
         res.status(500).json({ error: 'Failed to generate idea' });
+    }
+});
+
+// Music library - get tracks filtered by style
+app.get('/api/music', async (req, res) => {
+    try {
+        const { MUSIC_TRACKS, getTracksForStyle: getTracksForStyleFn } = await import('./music-library');
+        const style = req.query.style as string;
+        const tracks = style ? getTracksForStyleFn(style) : MUSIC_TRACKS;
+        res.json(tracks);
+    } catch (error: any) {
+        log(`Music list error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to get music list' });
+    }
+});
+
+// Music preview - stream an MP3 file for playback
+app.get('/api/music/preview/:id', async (req, res) => {
+    try {
+        const { getTrackById: getTrackByIdFn } = await import('./music-library');
+        const track = getTrackByIdFn(req.params.id);
+        if (!track) {
+            res.status(404).json({ error: 'Track not found' });
+            return;
+        }
+        const musicPath = path.join(process.cwd(), 'assets', 'music', track.file);
+        if (!fs.existsSync(musicPath)) {
+            res.status(404).json({ error: 'Music file not found' });
+            return;
+        }
+        res.setHeader('Content-Type', 'audio/mpeg');
+        res.setHeader('Accept-Ranges', 'bytes');
+        const stat = fs.statSync(musicPath);
+        res.setHeader('Content-Length', stat.size);
+        fs.createReadStream(musicPath).pipe(res);
+    } catch (error: any) {
+        log(`Music preview error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to stream music' });
     }
 });
 

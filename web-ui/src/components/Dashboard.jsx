@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Video, Play, List, LogOut, Send, CheckCircle, Clock, FolderOpen, Download, Loader2, AlertCircle, Film, Wifi, WifiOff, Trash2, Eye, Sparkles } from 'lucide-react';
+import MusicPicker from './MusicPicker';
 
 // API Base URL - uses env var in production, falls back to localhost for dev
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
@@ -10,7 +11,8 @@ const Dashboard = ({ onLogout }) => {
         title: '',
         topic: '',
         duration: '60s',
-        style: 'Documentary'
+        style: 'Documentary',
+        musicTrack: ''
     });
 
     const [status, setStatus] = useState('idle'); // idle, submitting, success, error
@@ -118,7 +120,8 @@ const Dashboard = ({ onLogout }) => {
                     title: idea.title || '',
                     topic: idea.topic || '',
                     duration: idea.duration || '60s',
-                    style: idea.style || 'Documentary'
+                    style: idea.style || 'Documentary',
+                    musicTrack: idea.musicTrack || ''
                 });
             } else {
                 const data = await res.json();
@@ -166,7 +169,7 @@ const Dashboard = ({ onLogout }) => {
 
                 setTimeout(() => {
                     setStatus('idle');
-                    setFormData({ title: '', topic: '', duration: '60s', style: 'Documentary' });
+                    setFormData({ title: '', topic: '', duration: '60s', style: 'Documentary', musicTrack: '' });
                 }, 1500);
             } else {
                 throw new Error(data.error || 'Generation failed');
@@ -405,8 +408,18 @@ const Dashboard = ({ onLogout }) => {
                                             <option value="Minimalist">Minimalist / Clean</option>
                                             <option value="Cinematic">Cinematic 8k</option>
                                             <option value="ExplainLikeIm5">Animated / Cartoon</option>
+                                            <option value="NatureDocs">Nature Documentary</option>
+                                            <option value="TechReview">Tech Review</option>
+                                            <option value="Horror">Horror / Dark</option>
                                         </select>
                                     </div>
+
+                                    {/* Music Picker */}
+                                    <MusicPicker
+                                        style={formData.style}
+                                        selectedTrack={formData.musicTrack}
+                                        onSelectTrack={(trackId) => setFormData(prev => ({ ...prev, musicTrack: trackId }))}
+                                    />
                                 </div>
 
                                 {/* Error message */}

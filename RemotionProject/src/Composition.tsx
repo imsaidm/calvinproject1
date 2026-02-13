@@ -1,7 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, Audio, Img, useVideoConfig, useCurrentFrame, interpolate, Sequence, staticFile } from 'remotion';
 import { z } from 'zod';
-import { CinematicBackground } from './Slideshow';
+import { CinematicBackground, MultiVisualBackground } from './Slideshow';
 import { Subtitles, generateSubtitleEntries, type SubtitleEntry } from './Subtitles';
 import { getStyleConfig, type StyleConfig } from './visualStyles';
 
@@ -9,7 +9,9 @@ import { getStyleConfig, type StyleConfig } from './visualStyles';
 const SegmentSchema = z.object({
     title: z.string(),
     narration: z.string(),
-    imageUrl: z.string()
+    imageUrl: z.string(),
+    imageUrls: z.array(z.string()).optional(),
+    videoUrl: z.string().optional()
 });
 
 // Subtitle timestamp chunk schema (from Whisper)
@@ -53,12 +55,14 @@ export const VideoSchema = z.object({
 const Scene: React.FC<{
     sceneTitle: string;
     imageUrl: string;
+    imageUrls?: string[];
+    videoUrl?: string;
     sceneIndex: number;
     sceneDuration: number;
     primaryColor: string;
     accentColor: string;
     style: StyleConfig;
-}> = ({ sceneTitle, imageUrl, sceneIndex, sceneDuration, primaryColor, accentColor, style }) => {
+}> = ({ sceneTitle, imageUrl, imageUrls, videoUrl, sceneIndex, sceneDuration, primaryColor, accentColor, style }) => {
     const frame = useCurrentFrame();
     const { fps } = useVideoConfig();
 
@@ -74,12 +78,20 @@ const Scene: React.FC<{
 
     return (
         <AbsoluteFill style={{ opacity: fadeIn }}>
-            {/* Background: Cinematic Single Image */}
-            <CinematicBackground
-                imageUrl={imageUrl}
-                durationInSeconds={sceneDuration}
-                direction={direction}
-            />
+            {/* Background: Multi-Visual with crossfade or fallback to single */}
+            {imageUrls && imageUrls.length > 1 ? (
+                <MultiVisualBackground
+                    imageUrls={imageUrls}
+                    videoUrl={videoUrl}
+                    durationInSeconds={sceneDuration}
+                />
+            ) : (
+                <CinematicBackground
+                    imageUrl={imageUrl}
+                    durationInSeconds={sceneDuration}
+                    direction={direction}
+                />
+            )}
 
             {/* Style-specific Gradient Overlay */}
             <AbsoluteFill style={{
@@ -454,6 +466,8 @@ export const MyComposition: React.FC<z.infer<typeof VideoSchema>> = ({
                     <Scene
                         sceneTitle={seg.title}
                         imageUrl={seg.imageUrl}
+                        imageUrls={seg.imageUrls}
+                        videoUrl={seg.videoUrl}
                         sceneIndex={i}
                         sceneDuration={segmentSeconds}
                         primaryColor={primaryColor}

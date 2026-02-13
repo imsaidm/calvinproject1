@@ -44,9 +44,15 @@ export async function generateScript(topic: string, duration: number, style: str
         "cta": "Call to action (max 5 words)",
         "keywords": "3 comma-separated keywords for the topic",
         "imageQueries": [
-            "Stock photo search query for segment 1 background (2-4 descriptive words)",
-            "Stock photo search query for segment 2 background (2-4 descriptive words)",
-            "Stock photo search query for segment 3 background (2-4 descriptive words)"
+            "Segment 1 visual A: a specific, cinematic scene (3-5 descriptive words)",
+            "Segment 1 visual B: a different angle or related scene (3-5 descriptive words)",
+            "Segment 1 visual C: another visual for this segment (3-5 descriptive words)",
+            "Segment 2 visual A: a specific scene for this topic (3-5 descriptive words)",
+            "Segment 2 visual B: a different perspective (3-5 descriptive words)",
+            "Segment 2 visual C: another visual for this segment (3-5 descriptive words)",
+            "Segment 3 visual A: a specific scene for conclusion (3-5 descriptive words)",
+            "Segment 3 visual B: a different angle (3-5 descriptive words)",
+            "Segment 3 visual C: a closing visual (3-5 descriptive words)"
         ]
     }
 
@@ -54,10 +60,11 @@ export async function generateScript(topic: string, duration: number, style: str
     - Narration segments will be read aloud as voiceover. Make them sound natural when spoken.
     - STRICT LIMIT: Total word count for all 3 segments MUST be under ${targetWordCount} words.
     - Scale narration length to fit exactly ${duration} seconds total speaking time.
-    - imageQueries MUST describe CONCRETE visual scenes for stock photo search.
-      GOOD: "surgeon operating room", "students laptop classroom", "robot assembly factory"
+    - imageQueries MUST be exactly 9 items (3 per segment).
+    - Each query must describe a CONCRETE, SPECIFIC visual scene for stock photo/video search.
+      GOOD: "surgeon operating room close-up", "aerial drone city skyline night", "robot arm assembly factory"
       BAD: "healthcare", "education", "technology"
-    - Each imageQuery should visually match its segment's topic.
+    - Vary the visuals within each segment — show different angles, perspectives, and subjects related to the narration.
     DO NOT output any text before or after the JSON.`;
 
     try {
