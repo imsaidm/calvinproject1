@@ -410,6 +410,80 @@ app.get('/library', (req, res) => {
     }
 });
 
+// ============================================================
+// COPYRIGHT CHECK ENDPOINTS
+// ============================================================
+
+// Check a single music track's copyright status
+app.get('/api/copyright/check/:trackId', async (req, res) => {
+    try {
+        const { checkMusicTrack } = await import('./copyright-checker');
+        const result = checkMusicTrack(req.params.trackId);
+        res.json({
+            trackId: req.params.trackId,
+            safe: result.safe,
+            details: result.details,
+            license: result.track?.license || null,
+            source: result.track?.source || null,
+            sourceUrl: result.track?.sourceUrl || null
+        });
+    } catch (error: any) {
+        log(`Copyright check error: ${error.message}`);
+        res.status(500).json({ error: 'Copyright check failed' });
+    }
+});
+
+// Full copyright report for a set of assets
+app.post('/api/copyright/report', express.json(), async (req, res) => {
+    try {
+        const { generateCopyrightReport } = await import('./copyright-checker');
+        const { trackId, imageUrls, videoUrls } = req.body;
+
+        if (!trackId) {
+            return res.status(400).json({ error: 'trackId is required' });
+        }
+
+        const report = generateCopyrightReport(
+            trackId,
+            imageUrls || [],
+            videoUrls || []
+        );
+
+        log(`Copyright report: score=${report.score}, safe=${report.safe}`);
+        res.json(report);
+    } catch (error: any) {
+        log(`Copyright report error: ${error.message}`);
+        res.status(500).json({ error: 'Copyright report failed' });
+    }
+});
+
+// Library-wide copyright status
+app.get('/api/copyright/all', async (req, res) => {
+    try {
+        const { MUSIC_TRACKS } = await import('./music-library');
+        const summary = {
+            totalTracks: MUSIC_TRACKS.length,
+            verifiedSafe: MUSIC_TRACKS.filter(t => t.copyrightSafe).length,
+            unverified: MUSIC_TRACKS.filter(t => !t.copyrightSafe).length,
+            tracks: MUSIC_TRACKS.map(t => ({
+                id: t.id,
+                name: t.name,
+                copyrightSafe: t.copyrightSafe,
+                license: t.license,
+                source: t.source,
+                sourceUrl: t.sourceUrl
+            })),
+            imageSources: 'Pexels — royalty-free under Pexels License',
+            videoSources: 'Pexels — royalty-free under Pexels License',
+            overallSafe: MUSIC_TRACKS.every(t => t.copyrightSafe)
+        };
+        res.json(summary);
+    } catch (error: any) {
+        log(`Copyright all error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to load copyright status' });
+    }
+});
+
 // Health check
 app.get('/', (req, res) => {
     res.json({

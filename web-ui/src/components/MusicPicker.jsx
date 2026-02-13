@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Music, Play, Pause, Volume2 } from 'lucide-react';
+import { Music, Play, Pause, Volume2, ShieldCheck, ShieldAlert } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
@@ -144,21 +144,34 @@ const MusicPicker = ({ style, selectedTrack, onSelectTrack }) => {
                             {/* Track Info */}
                             <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{
+                                    display: 'flex', alignItems: 'center', gap: '5px',
                                     fontSize: '13px',
                                     fontWeight: isSelected ? 600 : 400,
                                     color: isSelected ? '#e2e8f0' : '#9ca3af',
-                                    whiteSpace: 'nowrap',
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis'
                                 }}>
-                                    {track.name}
+                                    <span style={{
+                                        whiteSpace: 'nowrap',
+                                        overflow: 'hidden',
+                                        textOverflow: 'ellipsis'
+                                    }}>{track.name}</span>
+                                    {track.copyrightSafe ? (
+                                        <ShieldCheck
+                                            style={{ width: '13px', height: '13px', color: '#22c55e', flexShrink: 0 }}
+                                            title={`✅ Copyright Safe — ${track.license || 'Royalty-Free'}`}
+                                        />
+                                    ) : (
+                                        <ShieldAlert
+                                            style={{ width: '13px', height: '13px', color: '#f59e0b', flexShrink: 0 }}
+                                            title="⚠️ Copyright status unverified"
+                                        />
+                                    )}
                                 </div>
                                 <div style={{
                                     fontSize: '11px',
                                     color: '#6b7280',
                                     marginTop: '2px'
                                 }}>
-                                    {track.mood} · {track.bpm}
+                                    {track.mood} · {track.bpm}{track.source ? ` · ${track.source}` : ''}
                                 </div>
                             </div>
 

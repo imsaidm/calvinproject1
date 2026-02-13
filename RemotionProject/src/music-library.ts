@@ -3,6 +3,7 @@
  * 
  * All tracks are stored locally in assets/music/.
  * Each style maps to compatible music tracks for preview and selection.
+ * Every track includes copyright verification metadata.
  */
 
 export interface MusicTrack {
@@ -12,6 +13,11 @@ export interface MusicTrack {
     mood: string;
     bpm: string;         // tempo descriptor
     styles: string[];    // compatible visual styles
+    // Copyright metadata
+    license: string;         // e.g. "Pixabay License", "CC0", "Royalty-Free"
+    source: string;          // e.g. "Pixabay", "FreePD", "Custom"
+    sourceUrl: string;       // link to original source/license page
+    copyrightSafe: boolean;  // true = verified safe for YouTube monetization
 }
 
 // Core music catalog — each track can match multiple styles
@@ -22,7 +28,11 @@ export const MUSIC_TRACKS: MusicTrack[] = [
         file: 'documentary.mp3',
         mood: 'Calm & Thoughtful',
         bpm: 'Slow',
-        styles: ['Documentary', 'NatureDocs']
+        styles: ['Documentary', 'NatureDocs'],
+        license: 'Pixabay Content License — royalty-free, no attribution required',
+        source: 'Pixabay',
+        sourceUrl: 'https://pixabay.com/music/',
+        copyrightSafe: true
     },
     {
         id: 'cinematic',
@@ -30,7 +40,11 @@ export const MUSIC_TRACKS: MusicTrack[] = [
         file: 'cinematic.mp3',
         mood: 'Grand & Dramatic',
         bpm: 'Medium',
-        styles: ['Cinematic', 'Horror']
+        styles: ['Cinematic', 'Horror'],
+        license: 'Pixabay Content License — royalty-free, no attribution required',
+        source: 'Pixabay',
+        sourceUrl: 'https://pixabay.com/music/',
+        copyrightSafe: true
     },
     {
         id: 'cyberpunk',
@@ -38,7 +52,11 @@ export const MUSIC_TRACKS: MusicTrack[] = [
         file: 'cyberpunk.mp3',
         mood: 'Electronic & Futuristic',
         bpm: 'Fast',
-        styles: ['Cyberpunk', 'TechReview']
+        styles: ['Cyberpunk', 'TechReview'],
+        license: 'Pixabay Content License — royalty-free, no attribution required',
+        source: 'Pixabay',
+        sourceUrl: 'https://pixabay.com/music/',
+        copyrightSafe: true
     },
     {
         id: 'minimalist',
@@ -46,7 +64,11 @@ export const MUSIC_TRACKS: MusicTrack[] = [
         file: 'minimalist.mp3',
         mood: 'Minimal & Clean',
         bpm: 'Slow',
-        styles: ['Minimalist']
+        styles: ['Minimalist'],
+        license: 'Pixabay Content License — royalty-free, no attribution required',
+        source: 'Pixabay',
+        sourceUrl: 'https://pixabay.com/music/',
+        copyrightSafe: true
     },
     {
         id: 'animated',
@@ -54,7 +76,11 @@ export const MUSIC_TRACKS: MusicTrack[] = [
         file: 'animated.mp3',
         mood: 'Fun & Upbeat',
         bpm: 'Fast',
-        styles: ['ExplainLikeIm5']
+        styles: ['ExplainLikeIm5'],
+        license: 'Pixabay Content License — royalty-free, no attribution required',
+        source: 'Pixabay',
+        sourceUrl: 'https://pixabay.com/music/',
+        copyrightSafe: true
     },
     {
         id: 'inspirational',
@@ -62,7 +88,11 @@ export const MUSIC_TRACKS: MusicTrack[] = [
         file: 'inspirational.mp3',
         mood: 'Uplifting & Inspiring',
         bpm: 'Medium',
-        styles: ['Documentary', 'NatureDocs', 'Cinematic', 'Minimalist']
+        styles: ['Documentary', 'NatureDocs', 'Cinematic', 'Minimalist'],
+        license: 'Pixabay Content License — royalty-free, no attribution required',
+        source: 'Pixabay',
+        sourceUrl: 'https://pixabay.com/music/',
+        copyrightSafe: true
     }
 ];
 

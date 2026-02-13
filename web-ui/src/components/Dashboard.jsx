@@ -144,6 +144,27 @@ const Dashboard = ({ onLogout }) => {
         setStatus('submitting');
         setErrorMessage('');
 
+        // Pre-submit copyright check
+        if (formData.musicTrack) {
+            try {
+                const copyrightRes = await fetch(`${API_BASE}/api/copyright/check/${formData.musicTrack}`);
+                if (copyrightRes.ok) {
+                    const check = await copyrightRes.json();
+                    if (!check.safe) {
+                        const proceed = window.confirm(
+                            `⚠️ Copyright Warning:\n${check.details}\n\nThis track may cause YouTube copyright claims. Continue anyway?`
+                        );
+                        if (!proceed) {
+                            setStatus('idle');
+                            return;
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('Copyright pre-check skipped:', err);
+            }
+        }
+
         try {
             const response = await fetch(`${API_BASE}/trigger`, {
                 method: 'POST',
