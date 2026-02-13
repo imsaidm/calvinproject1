@@ -24,9 +24,13 @@ const MusicPicker = ({ style, selectedTrack, onSelectTrack }) => {
                     setTracks(data);
                     // Reset selection if current track isn't compatible with new style
                     if (data.length > 0) {
-                        const currentTrackValid = selectedTrack && data.some(t => t.id === selectedTrack);
+                        const currentTrackValid = selectedTrack && data.some(t => t.id === selectedTrack && t.available !== false);
                         if (!currentTrackValid) {
-                            onSelectTrack(data[0].id);
+                            // Auto-select first available track
+                            const firstAvailable = data.find(t => t.available !== false);
+                            if (firstAvailable) {
+                                onSelectTrack(firstAvailable.id);
+                            }
                         }
                     }
                 }
@@ -96,18 +100,21 @@ const MusicPicker = ({ style, selectedTrack, onSelectTrack }) => {
                     const isSelected = selectedTrack === track.id;
                     const isPlaying = playingId === track.id;
 
+                    const isUnavailable = track.available === false;
+
                     return (
                         <div
                             key={track.id}
-                            onClick={() => onSelectTrack(track.id)}
+                            onClick={() => !isUnavailable && onSelectTrack(track.id)}
                             style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '10px',
                                 padding: '10px 14px',
                                 borderRadius: '12px',
-                                cursor: 'pointer',
+                                cursor: isUnavailable ? 'not-allowed' : 'pointer',
                                 transition: 'all 0.2s ease',
+                                opacity: isUnavailable ? 0.4 : 1,
                                 background: isSelected
                                     ? 'linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(59, 130, 246, 0.15))'
                                     : 'rgba(255,255,255,0.03)',
@@ -118,7 +125,9 @@ const MusicPicker = ({ style, selectedTrack, onSelectTrack }) => {
                         >
                             {/* Play/Pause Button */}
                             <button
-                                onClick={(e) => { e.stopPropagation(); togglePlay(track.id); }}
+                                type="button"
+                                onClick={(e) => { e.stopPropagation(); if (!isUnavailable) togglePlay(track.id); }}
+                                disabled={isUnavailable}
                                 style={{
                                     width: '32px', height: '32px',
                                     borderRadius: '50%',
@@ -171,7 +180,9 @@ const MusicPicker = ({ style, selectedTrack, onSelectTrack }) => {
                                     color: '#6b7280',
                                     marginTop: '2px'
                                 }}>
-                                    {track.mood} · {track.bpm}{track.source ? ` · ${track.source}` : ''}
+                                    {isUnavailable
+                                        ? <span style={{ color: '#ef4444' }}>Not downloaded</span>
+                                        : <>{track.mood} · {track.bpm}{track.source ? ` · ${track.source}` : ''}</>}
                                 </div>
                             </div>
 

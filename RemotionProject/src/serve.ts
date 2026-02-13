@@ -331,26 +331,31 @@ RULES:
     }
 });
 
-// Music library - get tracks filtered by style (only tracks with files on disk)
+// Music library - get tracks filtered by style (shows all tracks, marks availability)
 app.get('/api/music', async (req, res) => {
     try {
         const { MUSIC_TRACKS, getTracksForStyle: getTracksForStyleFn, getAvailableTracks } = await import('./music-library');
         const style = req.query.style as string;
+        const fs = await import('fs');
+        const path = await import('path');
+        const musicDir = path.join(process.cwd(), 'assets', 'music');
 
-        // Filter to only available (downloaded) tracks
-        const available = getAvailableTracks();
-        const tracks = style
-            ? available.filter(t => t.styles.includes(style))
-            : available;
+        // Get tracks for this style (from full catalog, not just available)
+        const styleTracks = style
+            ? MUSIC_TRACKS.filter(t => t.styles.includes(style))
+            : MUSIC_TRACKS;
 
-        // If style filter returns empty, return all available tracks as fallback
-        if (tracks.length === 0 && style) {
-            log(`No available tracks for style "${style}", returning all available`);
-            return res.json(available);
-        }
+        // Add availability flag to each track
+        const tracksWithAvailability = styleTracks.map(t => ({
+            ...t,
+            available: fs.existsSync(path.join(musicDir, t.file))
+        }));
 
-        log(`Music library: ${available.length}/${MUSIC_TRACKS.length} tracks available, ${tracks.length} returned for style="${style || 'all'}"`);
-        res.json(tracks);
+        // Sort: available first, then unavailable
+        tracksWithAvailability.sort((a, b) => (b.available ? 1 : 0) - (a.available ? 1 : 0));
+
+        log(`Music library: ${tracksWithAvailability.filter(t => t.available).length}/${tracksWithAvailability.length} tracks available for style="${style || 'all'}"`);
+        res.json(tracksWithAvailability);
     } catch (error: any) {
         log(`Music list error: ${error.message}`);
         res.status(500).json({ error: 'Failed to get music list' });
