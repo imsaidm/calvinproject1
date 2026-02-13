@@ -40,6 +40,7 @@ interface VideoJob {
     topic: string;
     style: string;
     duration: string;
+    musicTrack?: string;
     status: 'queued' | 'processing' | 'completed' | 'failed';
     createdAt: Date;
     completedAt?: Date;
@@ -75,8 +76,12 @@ async function processQueue() {
         const cmdTopic = nextJob.topic.replace(/[^a-zA-Z0-9 _\-.,!?'()]/g, '');
         const cmdStyle = nextJob.style.replace(/[^a-zA-Z0-9 ]/g, '') || 'Documentary';
         const cmdDuration = (nextJob.duration || '30s').replace(/[^0-9s]/g, '');
+        const cmdMusic = (nextJob.musicTrack || '').replace(/[^a-zA-Z0-9_\-.]/g, '');
 
-        const cmd = `npm run orchestrate -- --title "${cmdTitle}" --topic "${cmdTopic}" --style "${cmdStyle}" --duration "${cmdDuration}"`;
+        let cmd = `npm run orchestrate -- --title "${cmdTitle}" --topic "${cmdTopic}" --style "${cmdStyle}" --duration "${cmdDuration}"`;
+        if (cmdMusic) {
+            cmd += ` --musicTrack "${cmdMusic}"`;
+        }
 
         log(`Executing: ${cmd}`);
         const { stdout, stderr } = await execPromise(cmd, { maxBuffer: MAX_BUFFER });
@@ -139,7 +144,7 @@ app.get('/api/videos', (req, res) => {
 
 // Trigger video generation (queued)
 app.post('/trigger', async (req, res) => {
-    const { title, topic, style, duration } = req.body;
+    const { title, topic, style, duration, musicTrack } = req.body;
 
     if (!title || !topic) {
         res.status(400).json({ error: "Missing title or topic" });
@@ -152,6 +157,7 @@ app.post('/trigger', async (req, res) => {
         topic,
         style: style || 'Documentary',
         duration: duration || '30s',
+        musicTrack: musicTrack || '',
         status: 'queued',
         createdAt: new Date()
     };
@@ -322,12 +328,25 @@ RULES:
     }
 });
 
-// Music library - get tracks filtered by style
+// Music library - get tracks filtered by style (only tracks with files on disk)
 app.get('/api/music', async (req, res) => {
     try {
-        const { MUSIC_TRACKS, getTracksForStyle: getTracksForStyleFn } = await import('./music-library');
+        const { MUSIC_TRACKS, getTracksForStyle: getTracksForStyleFn, getAvailableTracks } = await import('./music-library');
         const style = req.query.style as string;
-        const tracks = style ? getTracksForStyleFn(style) : MUSIC_TRACKS;
+
+        // Filter to only available (downloaded) tracks
+        const available = getAvailableTracks();
+        const tracks = style
+            ? available.filter(t => t.styles.includes(style))
+            : available;
+
+        // If style filter returns empty, return all available tracks as fallback
+        if (tracks.length === 0 && style) {
+            log(`No available tracks for style "${style}", returning all available`);
+            return res.json(available);
+        }
+
+        log(`Music library: ${available.length}/${MUSIC_TRACKS.length} tracks available, ${tracks.length} returned for style="${style || 'all'}"`);
         res.json(tracks);
     } catch (error: any) {
         log(`Music list error: ${error.message}`);
@@ -335,30 +354,6 @@ app.get('/api/music', async (req, res) => {
     }
 });
 
-// Music preview - stream an MP3 file for playback
-app.get('/api/music/preview/:id', async (req, res) => {
-    try {
-        const { getTrackById: getTrackByIdFn } = await import('./music-library');
-        const track = getTrackByIdFn(req.params.id);
-        if (!track) {
-            res.status(404).json({ error: 'Track not found' });
-            return;
-        }
-        const musicPath = path.join(process.cwd(), 'assets', 'music', track.file);
-        if (!fs.existsSync(musicPath)) {
-            res.status(404).json({ error: 'Music file not found' });
-            return;
-        }
-        res.setHeader('Content-Type', 'audio/mpeg');
-        res.setHeader('Accept-Ranges', 'bytes');
-        const stat = fs.statSync(musicPath);
-        res.setHeader('Content-Length', stat.size);
-        fs.createReadStream(musicPath).pipe(res);
-    } catch (error: any) {
-        log(`Music preview error: ${error.message}`);
-        res.status(500).json({ error: 'Failed to stream music' });
-    }
-});
 
 // Video library - HTML page for browsing videos
 app.get('/library', (req, res) => {
@@ -414,24 +409,21 @@ app.get('/library', (req, res) => {
 // MUSIC LIBRARY ENDPOINTS
 // ============================================================
 
-// Get music tracks (optionally filtered by style)
-app.get('/api/music', async (req, res) => {
+// Music library stats (for dashboard)
+app.get('/api/music/stats', async (req, res) => {
     try {
-        const { getTracksForStyle, MUSIC_TRACKS } = await import('./music-library');
-        const style = req.query.style as string;
-
-        const tracks = style ? getTracksForStyle(style) : MUSIC_TRACKS;
-
-        // If style filter returns empty, return all tracks as fallback
-        if (tracks.length === 0) {
-            log(`No tracks for style "${style}", returning all`);
-            return res.json(MUSIC_TRACKS);
-        }
-
-        res.json(tracks);
+        const { MUSIC_TRACKS, getAvailableTracks, getMissingTracks } = await import('./music-library');
+        const available = getAvailableTracks();
+        const missing = getMissingTracks();
+        res.json({
+            total: MUSIC_TRACKS.length,
+            available: available.length,
+            missing: missing.length,
+            missingTracks: missing.map(t => ({ id: t.id, name: t.name, file: t.file }))
+        });
     } catch (error: any) {
-        log(`Music list error: ${error.message}`);
-        res.status(500).json({ error: 'Failed to load music library' });
+        log(`Music stats error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to get music stats' });
     }
 });
 

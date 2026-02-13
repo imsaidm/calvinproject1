@@ -18,7 +18,8 @@ const videoSchema = z.object({
     title: z.string().min(1).max(100),
     topic: z.string().min(1),
     duration: z.string().regex(/^\d+s$/, "Duration must be like '30s', '60s'").default("30s"),
-    style: z.string().default("Documentary")
+    style: z.string().default("Documentary"),
+    musicTrack: z.string().optional()
 });
 
 async function main() {
@@ -32,7 +33,8 @@ async function main() {
             title: argv.title,
             topic: argv.topic,
             duration: argv.duration,
-            style: argv.style
+            style: argv.style,
+            musicTrack: argv.musicTrack || undefined
         });
 
         console.log(`✅ Input Validated: ${JSON.stringify(inputs)}`);
@@ -253,18 +255,55 @@ async function main() {
         // To enable: ensure logo.png is in public/ BEFORE bundling
         const finalLogo: string | undefined = undefined;
 
-        // Music - select based on visual style, convert to PCM WAV
+        // Music - use user-selected track if provided, otherwise random
         const styleConfig = getStyleConfig(inputs.style);
         let finalMusicUrl: string | undefined = undefined;
 
-        // Try style-specific music first, fallback to inspirational.mp3
-        const styleMusicFile = styleConfig.musicFile;
-        let musicSrc = path.join(process.cwd(), 'assets', 'music', styleMusicFile);
-        if (!fs.existsSync(musicSrc)) {
-            console.log(`🎵 No style music "${styleMusicFile}", using default`);
-            musicSrc = path.join(process.cwd(), 'assets', 'music', 'inspirational.mp3');
+        const { getRandomTrackForStyle, getTracksForStyle: listTracksForStyle, getTrackById } = await import('./music-library');
+        const compatibleTracks = listTracksForStyle(inputs.style);
+        console.log(`🎵 Music pool for "${inputs.style}": ${compatibleTracks.length} tracks available`);
+
+        // Determine which track to use
+        let selectedTrackFile: string;
+        if (inputs.musicTrack) {
+            // User explicitly selected a track in the UI
+            const userTrack = getTrackById(inputs.musicTrack);
+            if (userTrack) {
+                selectedTrackFile = userTrack.file;
+                console.log(`🎵 User selected: "${userTrack.name}" (${userTrack.file})`);
+            } else {
+                // Track ID not found, fall back to random
+                const randomTrack = getRandomTrackForStyle(inputs.style);
+                selectedTrackFile = randomTrack.file;
+                console.log(`🎵 User track "${inputs.musicTrack}" not found, random pick: "${randomTrack.name}"`);
+            }
         } else {
-            console.log(`🎵 Using style music: ${styleMusicFile}`);
+            // No track specified — random selection
+            const randomTrack = getRandomTrackForStyle(inputs.style);
+            selectedTrackFile = randomTrack.file;
+            console.log(`🎵 Random pick: "${randomTrack.name}" (${randomTrack.file})`);
+        }
+
+        let musicSrc = path.join(process.cwd(), 'assets', 'music', selectedTrackFile);
+        if (!fs.existsSync(musicSrc)) {
+            // If selected file doesn't exist on disk, fallback through options
+            console.log(`🎵 File "${selectedTrackFile}" not on disk, trying alternatives...`);
+            const fallbackOrder = ['inspirational.mp3', 'documentary.mp3', 'cinematic.mp3'];
+            let found = false;
+            for (const fb of fallbackOrder) {
+                const fbPath = path.join(process.cwd(), 'assets', 'music', fb);
+                if (fs.existsSync(fbPath)) {
+                    musicSrc = fbPath;
+                    console.log(`🎵 Fallback to: ${fb}`);
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                console.log(`🎵 No music files found, proceeding without music`);
+            }
+        } else {
+            console.log(`🎵 Using: ${selectedTrackFile}`);
         }
         if (fs.existsSync(musicSrc)) {
             try {
