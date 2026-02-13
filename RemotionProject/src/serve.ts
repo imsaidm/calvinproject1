@@ -281,17 +281,20 @@ Return ONLY a JSON object:
 {
   "title": "Catchy title (max 8 words)",
   "topic": "Detailed 2-3 sentence description of the video content, what it should cover, the angle, and the hook",
-  "style": "${styles[Math.floor(Math.random() * styles.length)]}",
-  "duration": "${durations[Math.floor(Math.random() * durations.length)]}"
+  "style": "pick ONE from the list below",
+  "duration": "pick ONE from the list below"
 }
+
+AVAILABLE STYLES: ${styles.join(', ')}
+AVAILABLE DURATIONS: ${durations.join(', ')}
 
 RULES:
 - Be CREATIVE and DIVERSE — never repeat common topics
 - Think viral YouTube — surprising facts, mind-blowing science, unknown history
 - The title must be click-worthy
 - The topic description should be detailed enough to guide AI video creation
-- The style MUST be exactly one of: ${styles.join(', ')}
-- The duration MUST be exactly one of: ${durations.join(', ')}
+- The style MUST be exactly one of the AVAILABLE STYLES listed above — pick a DIFFERENT style each time, match the style to the topic
+- The duration MUST be exactly one of the AVAILABLE DURATIONS listed above — vary it each time
 - Output ONLY the JSON, nothing else`
             }]
         });
