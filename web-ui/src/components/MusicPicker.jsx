@@ -22,9 +22,12 @@ const MusicPicker = ({ style, selectedTrack, onSelectTrack }) => {
                 if (res.ok) {
                     const data = await res.json();
                     setTracks(data);
-                    // Auto-select first track if none selected
-                    if (data.length > 0 && !selectedTrack) {
-                        onSelectTrack(data[0].id);
+                    // Reset selection if current track isn't compatible with new style
+                    if (data.length > 0) {
+                        const currentTrackValid = selectedTrack && data.some(t => t.id === selectedTrack);
+                        if (!currentTrackValid) {
+                            onSelectTrack(data[0].id);
+                        }
                     }
                 }
             } catch (err) {

@@ -70,7 +70,18 @@ export const MultiVisualBackground: React.FC<{
 
     if (visuals.length === 0) return null;
     if (visuals.length === 1) {
-        // Single visual — just Ken Burns
+        // Single visual — Ken Burns for image, or full-frame for video
+        if (visuals[0].type === 'video') {
+            return (
+                <AbsoluteFill>
+                    <OffthreadVideo
+                        src={visuals[0].url}
+                        muted
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                </AbsoluteFill>
+            );
+        }
         return (
             <CinematicBackground
                 imageUrl={visuals[0].url}
