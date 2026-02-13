@@ -158,6 +158,30 @@ const Dashboard = ({ onLogout }) => {
         setActiveJobs(prev => prev.filter(j => j.id !== jobId));
     };
 
+    // Delete a video permanently
+    const deleteVideo = async (vid) => {
+        const confirmMsg = `Are you sure you want to delete "${vid.title}"?\n\nThis will permanently remove the video and its voice files.`;
+        if (!window.confirm(confirmMsg)) return;
+
+        try {
+            // Extract filename from the video link URL
+            const filename = vid.link.split('/').pop();
+            const res = await fetch(`${API_BASE}/api/videos/${encodeURIComponent(filename)}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                // Remove from local state immediately for snappy UX
+                setRecentVideos(prev => prev.filter(v => v.id !== vid.id));
+            } else {
+                const data = await res.json();
+                alert(`Failed to delete: ${data.error || 'Unknown error'}`);
+            }
+        } catch (err) {
+            console.error('Delete failed:', err);
+            alert('Failed to delete video. Check your connection.');
+        }
+    };
+
     // Format relative time
     const timeAgo = (timestamp) => {
         if (!timestamp) return '';
@@ -526,6 +550,13 @@ const Dashboard = ({ onLogout }) => {
                                                 >
                                                     <Download className="w-4 h-4" />
                                                 </a>
+                                                <button
+                                                    onClick={() => deleteVideo(vid)}
+                                                    className="text-gray-400 hover:text-red-400 transition-colors"
+                                                    title="Delete video"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

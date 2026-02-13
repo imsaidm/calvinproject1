@@ -202,6 +202,53 @@ app.get('/api/jobs', (req, res) => {
     res.json(jobs);
 });
 
+// Delete a video (and associated voice files)
+app.delete('/api/videos/:filename', (req, res) => {
+    try {
+        const filename = req.params.filename;
+
+        // Sanitize: only allow alphanumeric, underscores, hyphens, dots
+        if (!/^[a-zA-Z0-9_\-. ]+\.mp4$/.test(filename)) {
+            res.status(400).json({ error: 'Invalid filename' });
+            return;
+        }
+
+        const videoPath = path.join(outDir, filename);
+        if (!fs.existsSync(videoPath)) {
+            res.status(404).json({ error: 'Video not found' });
+            return;
+        }
+
+        // Delete the video file
+        fs.unlinkSync(videoPath);
+        log(`Deleted video: ${filename}`);
+
+        // Also delete matching voice files from public/
+        const baseName = filename.replace('.mp4', '');
+        try {
+            const publicFiles = fs.readdirSync(publicDir);
+            // Match voice files: voice-<baseName>.wav/.mp3 or voiceover-<baseName>.wav/.mp3
+            const voiceFiles = publicFiles.filter((f: string) => {
+                const lower = f.toLowerCase();
+                const baseCheck = baseName.toLowerCase();
+                return (lower.includes(baseCheck) || lower.includes(baseCheck.replace(/_/g, '-')))
+                    && (lower.endsWith('.wav') || lower.endsWith('.mp3'));
+            });
+            for (const vf of voiceFiles) {
+                fs.unlinkSync(path.join(publicDir, vf));
+                log(`Deleted voice file: ${vf}`);
+            }
+        } catch (e) {
+            log(`Non-critical: could not clean voice files for ${baseName}`);
+        }
+
+        res.json({ success: true, message: `Deleted ${filename}` });
+    } catch (error: any) {
+        log(`Error deleting video: ${error.message}`);
+        res.status(500).json({ error: 'Failed to delete video' });
+    }
+});
+
 // Video library - HTML page for browsing videos
 app.get('/library', (req, res) => {
     try {
