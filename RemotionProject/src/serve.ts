@@ -411,6 +411,79 @@ app.get('/library', (req, res) => {
 });
 
 // ============================================================
+// MUSIC LIBRARY ENDPOINTS
+// ============================================================
+
+// Get music tracks (optionally filtered by style)
+app.get('/api/music', async (req, res) => {
+    try {
+        const { getTracksForStyle, MUSIC_TRACKS } = await import('./music-library');
+        const style = req.query.style as string;
+
+        const tracks = style ? getTracksForStyle(style) : MUSIC_TRACKS;
+
+        // If style filter returns empty, return all tracks as fallback
+        if (tracks.length === 0) {
+            log(`No tracks for style "${style}", returning all`);
+            return res.json(MUSIC_TRACKS);
+        }
+
+        res.json(tracks);
+    } catch (error: any) {
+        log(`Music list error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to load music library' });
+    }
+});
+
+// Stream/preview a music track by ID
+app.get('/api/music/preview/:id', async (req, res) => {
+    try {
+        const { getTrackById } = await import('./music-library');
+        const track = getTrackById(req.params.id);
+
+        if (!track) {
+            return res.status(404).json({ error: 'Track not found' });
+        }
+
+        const musicDir = path.join(process.cwd(), 'assets', 'music');
+        const filePath = path.join(musicDir, track.file);
+
+        if (!fs.existsSync(filePath)) {
+            log(`Music file not found: ${filePath}`);
+            return res.status(404).json({ error: `Music file not found: ${track.file}` });
+        }
+
+        const stat = fs.statSync(filePath);
+        const range = req.headers.range;
+
+        if (range) {
+            // Support range requests for seeking
+            const parts = range.replace(/bytes=/, '').split('-');
+            const start = parseInt(parts[0], 10);
+            const end = parts[1] ? parseInt(parts[1], 10) : stat.size - 1;
+            const chunkSize = end - start + 1;
+
+            res.writeHead(206, {
+                'Content-Range': `bytes ${start}-${end}/${stat.size}`,
+                'Accept-Ranges': 'bytes',
+                'Content-Length': chunkSize,
+                'Content-Type': 'audio/mpeg',
+            });
+            fs.createReadStream(filePath, { start, end }).pipe(res);
+        } else {
+            res.writeHead(200, {
+                'Content-Length': stat.size,
+                'Content-Type': 'audio/mpeg',
+            });
+            fs.createReadStream(filePath).pipe(res);
+        }
+    } catch (error: any) {
+        log(`Music preview error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to stream music' });
+    }
+});
+
+// ============================================================
 // COPYRIGHT CHECK ENDPOINTS
 // ============================================================
 
