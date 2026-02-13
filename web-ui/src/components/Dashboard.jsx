@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Video, Play, List, LogOut, Send, CheckCircle, Clock, FolderOpen, Download, Loader2, AlertCircle, Film, Wifi, WifiOff, Trash2, Eye } from 'lucide-react';
+import { Video, Play, List, LogOut, Send, CheckCircle, Clock, FolderOpen, Download, Loader2, AlertCircle, Film, Wifi, WifiOff, Trash2, Eye, Sparkles } from 'lucide-react';
 
 // API Base URL - uses env var in production, falls back to localhost for dev
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
@@ -20,6 +20,7 @@ const Dashboard = ({ onLogout }) => {
     const [queueInfo, setQueueInfo] = useState({ queue: 0, processing: false, completed: 0, failed: 0, totalJobs: 0 });
     const [engineOnline, setEngineOnline] = useState(false);
     const [previewVideo, setPreviewVideo] = useState(null); // Video URL for modal preview
+    const [autoFilling, setAutoFilling] = useState(false); // Auto-fill loading state
 
     // Fetch videos list
     const fetchVideos = useCallback(async () => {
@@ -105,6 +106,31 @@ const Dashboard = ({ onLogout }) => {
         const interval = setInterval(pollActiveJobs, 4000);
         return () => clearInterval(interval);
     }, [activeJobs, pollActiveJobs]);
+
+    // Auto-fill form with AI-generated idea
+    const autoFillForm = async () => {
+        setAutoFilling(true);
+        try {
+            const res = await fetch(`${API_BASE}/api/autofill`);
+            if (res.ok) {
+                const idea = await res.json();
+                setFormData({
+                    title: idea.title || '',
+                    topic: idea.topic || '',
+                    duration: idea.duration || '60s',
+                    style: idea.style || 'Documentary'
+                });
+            } else {
+                const data = await res.json();
+                alert(`Auto-fill failed: ${data.error || 'Unknown error'}`);
+            }
+        } catch (err) {
+            console.error('Auto-fill failed:', err);
+            alert('Auto-fill failed. Check your connection.');
+        } finally {
+            setAutoFilling(false);
+        }
+    };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -310,12 +336,27 @@ const Dashboard = ({ onLogout }) => {
                         className="lg:col-span-2"
                     >
                         <div className="glass-panel p-6">
-                            <div className="mb-6">
-                                <h2 className="text-xl font-bold flex items-center gap-2">
-                                    <Send className="w-5 h-5 text-purple-400" />
-                                    New Video Request
-                                </h2>
-                                <p className="text-gray-400 text-sm mt-1">Generate a new AI video with voiceover and subtitles.</p>
+                            <div className="mb-6 flex items-start justify-between">
+                                <div>
+                                    <h2 className="text-xl font-bold flex items-center gap-2">
+                                        <Send className="w-5 h-5 text-purple-400" />
+                                        New Video Request
+                                    </h2>
+                                    <p className="text-gray-400 text-sm mt-1">Generate a new AI video with voiceover and subtitles.</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={autoFillForm}
+                                    disabled={autoFilling || !engineOnline}
+                                    className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                                    title="Let AI generate a random video idea"
+                                >
+                                    {autoFilling ? (
+                                        <><Loader2 className="w-4 h-4 animate-spin" /> Thinking...</>
+                                    ) : (
+                                        <><Sparkles className="w-4 h-4" /> Auto Fill</>
+                                    )}
+                                </button>
                             </div>
 
                             <form onSubmit={handleSubmit}>

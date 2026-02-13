@@ -249,6 +249,72 @@ app.delete('/api/videos/:filename', (req, res) => {
     }
 });
 
+// Auto-fill form with AI-generated video idea
+app.get('/api/autofill', async (req, res) => {
+    try {
+        const Anthropic = (await import('@anthropic-ai/sdk')).default;
+
+        if (!process.env.ANTHROPIC_API_KEY) {
+            res.status(500).json({ error: 'ANTHROPIC_API_KEY not configured' });
+            return;
+        }
+
+        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+        const styles = ['Documentary', 'Cyberpunk', 'Minimalist', 'Cinematic', 'ExplainLikeIm5'];
+        const durations = ['30s', '60s', '90s', '120s', '150s', '180s'];
+
+        const msg = await anthropic.messages.create({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 300,
+            messages: [{
+                role: 'user',
+                content: `Generate ONE random, trendy, viral-worthy YouTube video idea. Pick a unique niche each time — tech, science, history, psychology, nature, space, health, business, AI, culture, mystery, etc.
+
+Return ONLY a JSON object:
+{
+  "title": "Catchy title (max 8 words)",
+  "topic": "Detailed 2-3 sentence description of the video content, what it should cover, the angle, and the hook",
+  "style": "${styles[Math.floor(Math.random() * styles.length)]}",
+  "duration": "${durations[Math.floor(Math.random() * durations.length)]}"
+}
+
+RULES:
+- Be CREATIVE and DIVERSE — never repeat common topics
+- Think viral YouTube — surprising facts, mind-blowing science, unknown history
+- The title must be click-worthy
+- The topic description should be detailed enough to guide AI video creation
+- The style MUST be exactly one of: ${styles.join(', ')}
+- The duration MUST be exactly one of: ${durations.join(', ')}
+- Output ONLY the JSON, nothing else`
+            }]
+        });
+
+        const textBlock = msg.content[0];
+        if (textBlock.type !== 'text') {
+            throw new Error('Unexpected response from Claude');
+        }
+
+        let content = textBlock.text.trim();
+        if (content.startsWith('```')) {
+            content = content.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?\s*```$/, '');
+        }
+
+        const idea = JSON.parse(content);
+
+        // Validate style and duration are valid values
+        if (!styles.includes(idea.style)) idea.style = 'Documentary';
+        if (!durations.includes(idea.duration)) idea.duration = '60s';
+
+        log(`Auto-fill generated: "${idea.title}"`);
+        res.json(idea);
+
+    } catch (error: any) {
+        log(`Auto-fill error: ${error.message}`);
+        res.status(500).json({ error: 'Failed to generate idea' });
+    }
+});
+
 // Video library - HTML page for browsing videos
 app.get('/library', (req, res) => {
     try {
