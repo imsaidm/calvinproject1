@@ -403,7 +403,7 @@ async function main() {
         fs.writeFileSync(debugPropsFile, propsJson);
 
         // 10. Render
-        const cmd = `npx remotion render src/index.ts AiVideo ${outputPath} --props=./${tempPropsFilename} --log=error`;
+        const cmd = `npx remotion render src/index.ts AiVideo ${outputPath} --props=./${tempPropsFilename} --log=error --timeout=120000`;
         console.log(`🎬 Rendering...`);
         await execPromise(cmd, { maxBuffer: 1024 * 1024 * 50 });
 
