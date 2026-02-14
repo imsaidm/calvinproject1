@@ -14,6 +14,9 @@ export const MasterSequence: React.FC = () => {
                     accentColor="#22c55e"
                     cta="Wait for it..."
                     enableCaptions={true}
+                    introDuration={1}
+                    outroDuration={1}
+                    visualStyle="Documentary"
                 />
             </Series.Sequence>
             <Series.Sequence durationInFrames={30 * 10}>
@@ -25,6 +28,9 @@ export const MasterSequence: React.FC = () => {
                     accentColor="#ffcc00"
                     cta="Almost there..."
                     enableCaptions={true}
+                    introDuration={1}
+                    outroDuration={1}
+                    visualStyle="Cyberpunk"
                 />
             </Series.Sequence>
             <Series.Sequence durationInFrames={30 * 10}>
@@ -36,6 +42,9 @@ export const MasterSequence: React.FC = () => {
                     accentColor="#00ff99"
                     cta="Thanks for watching!"
                     enableCaptions={true}
+                    introDuration={1}
+                    outroDuration={1}
+                    visualStyle="Cinematic"
                 />
             </Series.Sequence>
         </Series>

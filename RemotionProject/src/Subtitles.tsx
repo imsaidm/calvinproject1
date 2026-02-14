@@ -89,9 +89,9 @@ export const Subtitles: React.FC<{
     return (
         <AbsoluteFill
             style={{
-                justifyContent: 'flex-end',
+                justifyContent: 'flex-start',
                 alignItems: 'center',
-                paddingBottom: 60,
+                paddingTop: 60,
                 zIndex: 200,
             }}
         >
@@ -108,7 +108,7 @@ export const Subtitles: React.FC<{
                 <p
                     style={{
                         fontFamily: fontFamily || "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
-                        fontSize: 34,
+                        fontSize: 42,
                         color: isLight ? '#1e293b' : 'white',
                         margin: 0,
                         textAlign: 'center',
