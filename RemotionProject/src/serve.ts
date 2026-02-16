@@ -3,11 +3,14 @@ import cors from 'cors';
 import path from 'path';
 import fs from 'fs';
 import dotenv from 'dotenv';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+const VIDEO_API_KEY = process.env.VIDEO_API_KEY || '';
 
 // Simple file logger
 const logFile = path.join(process.cwd(), 'server.log');
@@ -17,8 +20,87 @@ function log(msg: string) {
     console.log(msg);
 }
 
-// Enable CORS so Web UI can fetch from any origin
-app.use(cors());
+// ============================================================
+// SECURITY MIDDLEWARE
+// ============================================================
+
+// Helmet — standard security headers (XSS, clickjacking, MIME sniffing)
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow video/image serving
+    contentSecurityPolicy: false // Don't break video streaming
+}));
+
+// CORS — restrict to allowed origins
+const allowedOrigins = [
+    'https://promovideohub.com',
+    'https://www.promovideohub.com',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    process.env.CORS_ORIGIN
+].filter(Boolean) as string[];
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (curl, server-to-server, same-origin)
+        if (!origin || allowedOrigins.some(o => origin.startsWith(o))) {
+            callback(null, true);
+        } else {
+            log(`CORS blocked: ${origin}`);
+            callback(new Error('CORS policy: Origin not allowed'));
+        }
+    },
+    credentials: true
+}));
+
+// Rate limiting — general (100 req / 15 min)
+const generalLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: { error: 'Too many requests. Please try again later.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+app.use(generalLimiter);
+
+// Rate limiting — video generation (5 req / 15 min)
+const triggerLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { error: 'Video generation rate limit exceeded. Max 5 per 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// Rate limiting — auto-fill (20 req / 15 min)
+const autofillLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: { error: 'Auto-fill rate limit exceeded. Max 20 per 15 minutes.' },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+
+// API Key authentication middleware
+function requireApiKey(req: express.Request, res: express.Response, next: express.NextFunction) {
+    if (!VIDEO_API_KEY) {
+        // If no API key configured, allow all (dev mode)
+        return next();
+    }
+
+    const apiKey = req.headers['x-api-key'] as string
+        || (req.headers['authorization'] as string || '').replace('Bearer ', '');
+
+    if (!apiKey || apiKey !== VIDEO_API_KEY) {
+        log(`AUTH DENIED: ${req.method} ${req.path} from ${req.ip}`);
+        res.status(401).json({ error: 'Unauthorized: Invalid or missing API key' });
+        return;
+    }
+    next();
+}
+
+// ============================================================
+// STATIC FILE SERVING
+// ============================================================
 
 // Serve the 'out' directory where videos are rendered
 const outDir = path.join(process.cwd(), 'out');
@@ -125,13 +207,27 @@ app.get('/api/videos', (req, res) => {
         const videos = files.map((file: string, index: number) => {
             const stats = fs.statSync(path.join(outDir, file));
             const sizeMB = (stats.size / (1024 * 1024)).toFixed(1);
+            const baseName = file.replace('.mp4', '');
+
+            // Check for associated YouTube-ready files
+            const metadataFile = `${baseName}_metadata.json`;
+            const scriptFile = `${baseName}_script.txt`;
+            const thumbnailFile = `${baseName}_thumbnail.jpg`;
+
+            const hasMetadata = fs.existsSync(path.join(outDir, metadataFile));
+            const hasScript = fs.existsSync(path.join(outDir, scriptFile));
+            const hasThumbnail = fs.existsSync(path.join(outDir, thumbnailFile));
+
             return {
                 id: index,
-                title: file.replace('.mp4', '').replace(/_/g, ' '),
+                title: baseName.replace(/_/g, ' '),
                 status: 'Ready',
                 link: `${baseUrl}/videos/${file}`,
                 timestamp: stats.mtime,
-                size: `${sizeMB} MB`
+                size: `${sizeMB} MB`,
+                metadataUrl: hasMetadata ? `${baseUrl}/videos/${metadataFile}` : null,
+                scriptUrl: hasScript ? `${baseUrl}/videos/${scriptFile}` : null,
+                thumbnailUrl: hasThumbnail ? `${baseUrl}/videos/${thumbnailFile}` : null
             };
         }).sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
@@ -142,8 +238,8 @@ app.get('/api/videos', (req, res) => {
     }
 });
 
-// Trigger video generation (queued)
-app.post('/trigger', async (req, res) => {
+// Trigger video generation (queued) — PROTECTED
+app.post('/trigger', triggerLimiter, requireApiKey, async (req, res) => {
     const { title, topic, style, duration, musicTrack } = req.body;
 
     if (!title || !topic) {
@@ -208,8 +304,8 @@ app.get('/api/jobs', (req, res) => {
     res.json(jobs);
 });
 
-// Delete a video (and associated voice files)
-app.delete('/api/videos/:filename', (req, res) => {
+// Delete a video permanently — PROTECTED
+app.delete('/api/videos/:filename', requireApiKey, (req, res) => {
     try {
         const filename = req.params.filename;
 
@@ -256,7 +352,8 @@ app.delete('/api/videos/:filename', (req, res) => {
 });
 
 // Auto-fill form with AI-generated video idea
-app.get('/api/autofill', async (req, res) => {
+// Supports ?niche=ai (default), ?niche=science, ?niche=any, etc.
+app.get('/api/autofill', autofillLimiter, async (req, res) => {
     try {
         const Anthropic = (await import('@anthropic-ai/sdk')).default;
 
@@ -270,12 +367,35 @@ app.get('/api/autofill', async (req, res) => {
         const styles = ['Documentary', 'Cyberpunk', 'Minimalist', 'Cinematic', 'ExplainLikeIm5', 'NatureDocs', 'TechReview', 'Horror'];
         const durations = ['30s', '60s', '90s', '120s', '150s', '180s'];
 
+        // Niche parameter — defaults to AI
+        const niche = (req.query.niche as string || 'ai').toLowerCase();
+
+        let nichePrompt: string;
+        if (niche === 'ai' || niche === 'artificial intelligence') {
+            nichePrompt = `Generate ONE random, trendy, viral-worthy YouTube video idea about Artificial Intelligence.
+Focus on ONE of these AI sub-topics (pick a different one each time):
+- AI tools and productivity hacks
+- AI automation for business
+- Machine learning breakthroughs
+- ChatGPT / Claude / AI assistant tips and tricks
+- AI in everyday life
+- AI vs human comparisons
+- Emerging AI technology and startups
+- AI ethics, safety, and the future
+- AI for content creators
+- How AI is transforming specific industries`;
+        } else if (niche === 'any' || niche === 'random') {
+            nichePrompt = `Generate ONE random, trendy, viral-worthy YouTube video idea. Pick a unique niche each time — tech, science, history, psychology, nature, space, health, business, AI, culture, mystery, etc.`;
+        } else {
+            nichePrompt = `Generate ONE random, trendy, viral-worthy YouTube video idea about ${niche}. Be creative and pick a unique angle within this topic.`;
+        }
+
         const msg = await anthropic.messages.create({
             model: 'claude-haiku-4-5-20251001',
             max_tokens: 300,
             messages: [{
                 role: 'user',
-                content: `Generate ONE random, trendy, viral-worthy YouTube video idea. Pick a unique niche each time — tech, science, history, psychology, nature, space, health, business, AI, culture, mystery, etc.
+                content: `${nichePrompt}
 
 Return ONLY a JSON object:
 {
@@ -290,11 +410,11 @@ AVAILABLE DURATIONS: ${durations.join(', ')}
 
 RULES:
 - Be CREATIVE and DIVERSE — never repeat common topics
-- Think viral YouTube — surprising facts, mind-blowing science, unknown history
-- The title must be click-worthy
+- Think viral YouTube — surprising facts, mind-blowing breakthroughs
+- The title must be click-worthy and engaging
 - The topic description should be detailed enough to guide AI video creation
 - The style MUST be exactly one of the AVAILABLE STYLES listed above — pick a DIFFERENT style each time, match the style to the topic
-- The duration MUST be exactly one of the AVAILABLE DURATIONS listed above — vary it each time
+- The duration MUST be exactly one of the AVAILABLE DURATIONS listed above — prefer 120s or 180s for longer, more valuable content
 - Output ONLY the JSON, nothing else`
             }]
         });
@@ -554,6 +674,26 @@ app.get('/api/copyright/all', async (req, res) => {
     } catch (error: any) {
         log(`Copyright all error: ${error.message}`);
         res.status(500).json({ error: 'Failed to load copyright status' });
+    }
+});
+
+// ============================================================
+// AUTH ENDPOINT
+// ============================================================
+
+// Server-side login validation
+app.post('/api/auth/login', (req, res) => {
+    const { password } = req.body;
+    if (!password) {
+        res.status(400).json({ error: 'Password required' });
+        return;
+    }
+    if (password === VIDEO_API_KEY) {
+        log(`Login success from ${req.ip}`);
+        res.json({ success: true, apiKey: VIDEO_API_KEY });
+    } else {
+        log(`Login FAILED from ${req.ip}`);
+        res.status(401).json({ error: 'Invalid credentials' });
     }
 });
 

@@ -26,6 +26,9 @@ services:
       # If using aaPanel Reverse Proxy, this should be your https://api.domain.com
       PUBLIC_URL: ${PUBLIC_URL}
       PORT: 4000
+      # Security
+      VIDEO_API_KEY: ${VIDEO_API_KEY}
+      CORS_ORIGIN: ${CORS_ORIGIN}
     volumes:
       # Persist generated videos
       - video-output:/app/out

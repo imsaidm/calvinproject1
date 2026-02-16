@@ -413,9 +413,86 @@ async function main() {
         const baseUrl = process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 4000}`;
         const publicLink = `${baseUrl}/videos/${outputFile}`;
 
+        // 11. Save YouTube-Ready Output Files
+        const outDirPath = path.join(process.cwd(), 'out');
+
+        // 11a. Metadata JSON
+        try {
+            const metadata = {
+                title: scriptData.title || inputs.title,
+                description: `${scriptData.segment1} ${scriptData.segment2} ${scriptData.segment3}`,
+                tags: (scriptData.keywords || '').split(',').map((k: string) => k.trim()).filter(Boolean),
+                style: inputs.style,
+                duration: finalDuration,
+                musicTrack: selectedTrackFile || null,
+                generatedAt: new Date().toISOString(),
+                videoFile: outputFile,
+                thumbnailFile: `${safeTitle}_thumbnail.jpg`,
+                scriptFile: `${safeTitle}_script.txt`,
+                videoUrl: publicLink
+            };
+            const metadataPath = path.join(outDirPath, `${safeTitle}_metadata.json`);
+            fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+            console.log(`📋 Metadata saved: ${safeTitle}_metadata.json`);
+        } catch (metaErr: any) {
+            console.warn(`⚠️ Metadata save failed: ${metaErr.message}`);
+        }
+
+        // 11b. Script Text File
+        try {
+            const scriptContent = [
+                `Title: ${scriptData.title || inputs.title}`,
+                `Style: ${inputs.style}`,
+                `Duration: ${finalDuration}s`,
+                `Generated: ${new Date().toISOString()}`,
+                '',
+                '=== SEGMENT 1: ' + (scriptData.segment1Title || 'Introduction') + ' ===',
+                scriptData.segment1,
+                '',
+                '=== SEGMENT 2: ' + (scriptData.segment2Title || 'The Story') + ' ===',
+                scriptData.segment2,
+                '',
+                '=== SEGMENT 3: ' + (scriptData.segment3Title || 'Conclusion') + ' ===',
+                scriptData.segment3,
+                '',
+                '=== CALL TO ACTION ===',
+                scriptData.cta,
+                '',
+                '=== KEYWORDS ===',
+                scriptData.keywords || ''
+            ].join('\n');
+            const scriptPath = path.join(outDirPath, `${safeTitle}_script.txt`);
+            fs.writeFileSync(scriptPath, scriptContent);
+            console.log(`📝 Script saved: ${safeTitle}_script.txt`);
+        } catch (scriptErr: any) {
+            console.warn(`⚠️ Script save failed: ${scriptErr.message}`);
+        }
+
+        // 11c. Thumbnail (extract frame at 3s from rendered video via FFmpeg)
+        try {
+            const ffmpegPath = require('ffmpeg-static');
+            const videoFullPath = path.join(outDirPath, outputFile);
+            const thumbnailPath = path.join(outDirPath, `${safeTitle}_thumbnail.jpg`);
+            if (fs.existsSync(videoFullPath)) {
+                await execPromise(
+                    `"${ffmpegPath}" -y -i "${videoFullPath}" -ss 3 -vframes 1 -q:v 2 "${thumbnailPath}"`,
+                    { timeout: 30000 }
+                );
+                if (fs.existsSync(thumbnailPath)) {
+                    const thumbSize = (fs.statSync(thumbnailPath).size / 1024).toFixed(1);
+                    console.log(`🖼️ Thumbnail saved: ${safeTitle}_thumbnail.jpg (${thumbSize} KB)`);
+                }
+            }
+        } catch (thumbErr: any) {
+            console.warn(`⚠️ Thumbnail extraction failed: ${thumbErr.message}`);
+        }
+
         console.log("---------------------------------------------------");
         console.log("🎉 SUCCESS: Video Generated!");
-        console.log(`🔗 Link: ${publicLink}`);
+        console.log(`🔗 Video: ${publicLink}`);
+        console.log(`📋 Metadata: ${baseUrl}/videos/${safeTitle}_metadata.json`);
+        console.log(`📝 Script: ${baseUrl}/videos/${safeTitle}_script.txt`);
+        console.log(`🖼️ Thumbnail: ${baseUrl}/videos/${safeTitle}_thumbnail.jpg`);
         console.log("---------------------------------------------------");
 
     } catch (error) {

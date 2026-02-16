@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Video, Play, List, LogOut, Send, CheckCircle, Clock, FolderOpen, Download, Loader2, AlertCircle, Film, Wifi, WifiOff, Trash2, Eye, Sparkles } from 'lucide-react';
+import { Video, Play, List, LogOut, Send, CheckCircle, Clock, FolderOpen, Download, Loader2, AlertCircle, Film, Wifi, WifiOff, Trash2, Eye, Sparkles, FileText, Image } from 'lucide-react';
 import MusicPicker from './MusicPicker';
 
 // API Base URL - uses env var in production, falls back to localhost for dev
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000';
 
-const Dashboard = ({ onLogout }) => {
+const Dashboard = ({ onLogout, apiKey }) => {
     const [formData, setFormData] = useState({
         title: '',
         topic: '',
@@ -23,6 +23,7 @@ const Dashboard = ({ onLogout }) => {
     const [engineOnline, setEngineOnline] = useState(false);
     const [previewVideo, setPreviewVideo] = useState(null); // Video URL for modal preview
     const [autoFilling, setAutoFilling] = useState(false); // Auto-fill loading state
+    const [autoFillNiche, setAutoFillNiche] = useState('ai'); // Auto-fill niche
 
     // Fetch videos list
     const fetchVideos = useCallback(async () => {
@@ -113,7 +114,7 @@ const Dashboard = ({ onLogout }) => {
     const autoFillForm = async () => {
         setAutoFilling(true);
         try {
-            const res = await fetch(`${API_BASE}/api/autofill`);
+            const res = await fetch(`${API_BASE}/api/autofill?niche=${encodeURIComponent(autoFillNiche)}`);
             if (res.ok) {
                 const idea = await res.json();
                 setFormData({
@@ -168,7 +169,10 @@ const Dashboard = ({ onLogout }) => {
         try {
             const response = await fetch(`${API_BASE}/trigger`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-api-key': apiKey
+                },
                 body: JSON.stringify(formData)
             });
 
@@ -217,7 +221,8 @@ const Dashboard = ({ onLogout }) => {
             // Extract filename from the video link URL
             const filename = vid.link.split('/').pop();
             const res = await fetch(`${API_BASE}/api/videos/${encodeURIComponent(filename)}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: { 'x-api-key': apiKey }
             });
             if (res.ok) {
                 // Remove from local state immediately for snappy UX
@@ -368,19 +373,33 @@ const Dashboard = ({ onLogout }) => {
                                     </h2>
                                     <p className="text-gray-400 text-sm mt-1">Generate a new AI video with voiceover and subtitles.</p>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={autoFillForm}
-                                    disabled={autoFilling || !engineOnline}
-                                    className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-                                    title="Let AI generate a random video idea"
-                                >
-                                    {autoFilling ? (
-                                        <><Loader2 className="w-4 h-4 animate-spin" /> Thinking...</>
-                                    ) : (
-                                        <><Sparkles className="w-4 h-4" /> Auto Fill</>
-                                    )}
-                                </button>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                    <select
+                                        value={autoFillNiche}
+                                        onChange={(e) => setAutoFillNiche(e.target.value)}
+                                        className="text-xs px-2 py-2 rounded-lg bg-white/5 border border-white/10 text-gray-300"
+                                        title="Content niche for auto-fill"
+                                    >
+                                        <option value="ai">🤖 AI</option>
+                                        <option value="tech">💻 Tech</option>
+                                        <option value="science">🔬 Science</option>
+                                        <option value="business">📈 Business</option>
+                                        <option value="any">🎲 Any Topic</option>
+                                    </select>
+                                    <button
+                                        type="button"
+                                        onClick={autoFillForm}
+                                        disabled={autoFilling || !engineOnline}
+                                        className="flex items-center gap-2 text-sm px-4 py-2 rounded-xl font-medium transition-all duration-300 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Let AI generate a random video idea"
+                                    >
+                                        {autoFilling ? (
+                                            <><Loader2 className="w-4 h-4 animate-spin" /> Thinking...</>
+                                        ) : (
+                                            <><Sparkles className="w-4 h-4" /> Auto Fill</>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
 
                             <form onSubmit={handleSubmit}>
@@ -585,14 +604,23 @@ const Dashboard = ({ onLogout }) => {
                                         className="relative aspect-video bg-black/40 cursor-pointer"
                                         onClick={() => setPreviewVideo(vid.link)}
                                     >
-                                        <video
-                                            src={vid.link}
-                                            preload="metadata"
-                                            className="w-full h-full object-cover"
-                                            muted
-                                            onMouseEnter={(e) => e.target.play().catch(() => { })}
-                                            onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
-                                        />
+                                        {vid.thumbnailUrl ? (
+                                            <img
+                                                src={vid.thumbnailUrl}
+                                                alt={vid.title}
+                                                className="w-full h-full object-cover"
+                                                loading="lazy"
+                                            />
+                                        ) : (
+                                            <video
+                                                src={vid.link}
+                                                preload="metadata"
+                                                className="w-full h-full object-cover"
+                                                muted
+                                                onMouseEnter={(e) => e.target.play().catch(() => { })}
+                                                onMouseLeave={(e) => { e.target.pause(); e.target.currentTime = 0; }}
+                                            />
+                                        )}
                                         <div className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity">
                                             <div className="p-3 bg-purple-500/80 rounded-full">
                                                 <Play className="w-6 h-6 text-white fill-current" />
@@ -609,7 +637,7 @@ const Dashboard = ({ onLogout }) => {
                                                 {timeAgo(vid.timestamp)}
                                                 {vid.size && <span className="text-gray-600">• {vid.size}</span>}
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-1.5">
                                                 <button
                                                     onClick={() => setPreviewVideo(vid.link)}
                                                     className="text-gray-400 hover:text-purple-400 transition-colors"
@@ -621,10 +649,40 @@ const Dashboard = ({ onLogout }) => {
                                                     href={vid.link}
                                                     download
                                                     className="text-gray-400 hover:text-blue-400 transition-colors"
-                                                    title="Download"
+                                                    title="Download video"
                                                 >
                                                     <Download className="w-4 h-4" />
                                                 </a>
+                                                {vid.metadataUrl && (
+                                                    <a
+                                                        href={vid.metadataUrl}
+                                                        download
+                                                        className="text-gray-400 hover:text-green-400 transition-colors"
+                                                        title="Download metadata (title, tags, description)"
+                                                    >
+                                                        <FileText className="w-4 h-4" />
+                                                    </a>
+                                                )}
+                                                {vid.scriptUrl && (
+                                                    <a
+                                                        href={vid.scriptUrl}
+                                                        download
+                                                        className="text-gray-400 hover:text-cyan-400 transition-colors"
+                                                        title="Download script"
+                                                    >
+                                                        <FileText className="w-3.5 h-3.5" />
+                                                    </a>
+                                                )}
+                                                {vid.thumbnailUrl && (
+                                                    <a
+                                                        href={vid.thumbnailUrl}
+                                                        download
+                                                        className="text-gray-400 hover:text-yellow-400 transition-colors"
+                                                        title="Download thumbnail"
+                                                    >
+                                                        <Image className="w-4 h-4" />
+                                                    </a>
+                                                )}
                                                 <button
                                                     onClick={() => deleteVideo(vid)}
                                                     className="text-gray-400 hover:text-red-400 transition-colors"
