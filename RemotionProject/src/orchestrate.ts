@@ -416,10 +416,19 @@ async function main() {
         const debugPropsFile = path.join(process.cwd(), 'debug-last-props.json');
         fs.writeFileSync(debugPropsFile, propsJson);
 
-        // 10. Render
-        const cmd = `npx remotion render src/index.ts AiVideo ${outputPath} --props=./${tempPropsFilename} --log=error --timeout=120000`;
+        // 10. Render - with Docker-compatible Chrome flags
+        const chromiumPath = process.env.CHROMIUM_PATH || '/usr/bin/chromium';
+        const renderFlags = [
+            `npx remotion render src/index.ts AiVideo ${outputPath}`,
+            `--props=./${tempPropsFilename}`,
+            `--log=error`,
+            `--timeout=180000`,
+            `--concurrency=1`,
+            `--gl=swangle`,
+            `--browser-executable="${chromiumPath}"`,
+        ].join(' ');
         console.log(`🎬 Rendering...`);
-        await execPromise(cmd, { maxBuffer: 1024 * 1024 * 50 });
+        await execPromise(renderFlags, { maxBuffer: 1024 * 1024 * 50 });
 
         // Cleanup temp props (keep debug copy)
         try { fs.unlinkSync(tempPropsFile); } catch (e) { }
