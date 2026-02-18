@@ -454,7 +454,7 @@ RULES:
 // Music library - get tracks filtered by style (shows all tracks, marks availability)
 app.get('/api/music', async (req, res) => {
     try {
-        const { MUSIC_TRACKS, getTracksForStyle: getTracksForStyleFn, getAvailableTracks } = await import('./music-library');
+        const { MUSIC_TRACKS, getTracksForStyle: getTracksForStyleFn } = await import('./music-library');
         const style = req.query.style as string;
         const fs = await import('fs');
         const path = await import('path');
@@ -540,14 +540,17 @@ app.get('/library', (req, res) => {
 // Music library stats (for dashboard)
 app.get('/api/music/stats', async (req, res) => {
     try {
-        const { MUSIC_TRACKS, getAvailableTracks, getMissingTracks } = await import('./music-library');
-        const available = getAvailableTracks();
-        const missing = getMissingTracks();
+        const { MUSIC_TRACKS } = await import('./music-library');
+        const fs = await import('fs');
+        const path = await import('path');
+        const musicDir = path.join(process.cwd(), 'assets', 'music');
+        const available = MUSIC_TRACKS.filter((t: any) => fs.existsSync(path.join(musicDir, t.file)));
+        const missing = MUSIC_TRACKS.filter((t: any) => !fs.existsSync(path.join(musicDir, t.file)));
         res.json({
             total: MUSIC_TRACKS.length,
             available: available.length,
             missing: missing.length,
-            missingTracks: missing.map(t => ({ id: t.id, name: t.name, file: t.file }))
+            missingTracks: missing.map((t: any) => ({ id: t.id, name: t.name, file: t.file }))
         });
     } catch (error: any) {
         log(`Music stats error: ${error.message}`);

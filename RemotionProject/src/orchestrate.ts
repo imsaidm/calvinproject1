@@ -96,28 +96,12 @@ async function main() {
             // Use Pollinations.ai for cartoon/illustration style images (FREE, no API key)
             console.log("🎨 Generating AI cartoon images via Pollinations.ai...");
             for (const query of imageQueries) {
-                try {
-                    const cartoonPrompt = `${query}, cartoon illustration style, colorful, vibrant, professional animation, high quality`;
-                    const encodedPrompt = encodeURIComponent(cartoonPrompt);
-                    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1600&height=900&nologo=true&seed=${Math.floor(Math.random() * 99999)}`;
-
-                    // Verify the URL works by doing a HEAD request with timeout
-                    const controller = new AbortController();
-                    const timeout = setTimeout(() => controller.abort(), 15000);
-                    const res = await fetch(imageUrl, { method: 'HEAD', signal: controller.signal });
-                    clearTimeout(timeout);
-
-                    if (res.ok) {
-                        images.push(imageUrl);
-                        console.log(`   ✅ AI cartoon image: "${query}"`);
-                    } else {
-                        throw new Error(`HTTP ${res.status}`);
-                    }
-                } catch (e: any) {
-                    console.warn(`   ⚠️ Pollinations failed for "${query}": ${e.message}`);
-                    // Fallback to picsum
-                    images.push(`https://picsum.photos/seed/${encodeURIComponent(query + Date.now())}/1600/900`);
-                }
+                const cartoonPrompt = `${query}, cartoon illustration style, colorful, vibrant, professional animation, high quality`;
+                const encodedPrompt = encodeURIComponent(cartoonPrompt);
+                const seed = Math.floor(Math.random() * 99999);
+                const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1600&height=900&nologo=true&seed=${seed}`;
+                images.push(imageUrl);
+                console.log(`   ✅ AI cartoon image: "${query}"`);
             }
             // No video clips for cartoon style (stock videos don't match cartoon aesthetic)
             videoClips = ['', '', ''];
