@@ -135,7 +135,41 @@ export async function generateVoiceover(text: string, outputBaseName: string): P
         }
     }
 
-    // --- STRATEGY 2: OPENAI TTS ---
+    // --- STRATEGY 2: EDGE TTS (Free Microsoft Neural Voices) ---
+    try {
+        console.log("🔊 Attempting Edge TTS (Free Microsoft Neural Voice)...");
+
+        // Install edge-tts if not already installed (one-time)
+        try {
+            await execPromise('python3 -c "import edge_tts"', { timeout: 5000 });
+        } catch (_) {
+            console.log("📦 Installing edge-tts...");
+            await execPromise('python3 -m pip install edge-tts --quiet --break-system-packages 2>/dev/null || pip3 install edge-tts --quiet 2>/dev/null || python3 -m ensurepip --default-pip && python3 -m pip install edge-tts --quiet --break-system-packages', { timeout: 60000 });
+        }
+
+        const edgeOutputFile = path.join(publicDir, `${nameWithoutExt}.mp3`);
+        const edgeVoice = 'en-US-GuyNeural'; // Professional male narrator voice
+
+        // Escape text for shell — write to temp file to avoid shell escaping issues
+        const tempTextFile = path.join(process.cwd(), `temp_edge_text_${Date.now()}.txt`);
+        fs.writeFileSync(tempTextFile, cleanText);
+
+        const edgeCmd = `python3 -m edge_tts --voice "${edgeVoice}" --rate "+5%" --file "${tempTextFile}" --write-media "${edgeOutputFile}"`;
+        await execPromise(edgeCmd, { timeout: 120000 });
+
+        // Cleanup temp text file
+        try { fs.unlinkSync(tempTextFile); } catch (_) { }
+
+        if (fs.existsSync(edgeOutputFile) && fs.statSync(edgeOutputFile).size > 1000) {
+            console.log(`✅ Edge TTS Success: ${nameWithoutExt}.mp3 (${fs.statSync(edgeOutputFile).size} bytes)`);
+            return `${nameWithoutExt}.mp3`;
+        }
+        throw new Error("Edge TTS output file too small or missing");
+    } catch (e: any) {
+        console.warn(`⚠️ Edge TTS Failed: ${e.message}`);
+    }
+
+    // --- STRATEGY 3: OPENAI TTS ---
     if (openaiKey) {
         try {
             console.log("🤖 Attempting OpenAI TTS...");
@@ -159,7 +193,7 @@ export async function generateVoiceover(text: string, outputBaseName: string): P
         }
     }
 
-    // --- STRATEGY 3: LOCAL FALLBACK (cross-platform) ---
+    // --- STRATEGY 4: LOCAL FALLBACK (cross-platform) ---
     const isLinux = process.platform === 'linux';
     const isWindows = process.platform === 'win32';
     // Local fallbacks produce WAV

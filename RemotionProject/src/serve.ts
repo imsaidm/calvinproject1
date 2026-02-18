@@ -24,6 +24,9 @@ function log(msg: string) {
 // SECURITY MIDDLEWARE
 // ============================================================
 
+// Trust proxy (behind nginx reverse proxy) — fixes rate limiter X-Forwarded-For warning
+app.set('trust proxy', 1);
+
 // Helmet — standard security headers (XSS, clickjacking, MIME sniffing)
 app.use(helmet({
     crossOriginResourcePolicy: { policy: 'cross-origin' }, // Allow video/image serving
