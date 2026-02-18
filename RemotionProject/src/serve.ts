@@ -61,7 +61,8 @@ const generalLimiter = rateLimit({
     max: 100,
     message: { error: 'Too many requests. Please try again later.' },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    validate: false
 });
 app.use(generalLimiter);
 
@@ -71,7 +72,8 @@ const triggerLimiter = rateLimit({
     max: 5,
     message: { error: 'Video generation rate limit exceeded. Max 5 per 15 minutes.' },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    validate: false
 });
 
 // Rate limiting — auto-fill (20 req / 15 min)
@@ -80,7 +82,8 @@ const autofillLimiter = rateLimit({
     max: 20,
     message: { error: 'Auto-fill rate limit exceeded. Max 20 per 15 minutes.' },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    validate: false
 });
 
 // API Key authentication middleware
