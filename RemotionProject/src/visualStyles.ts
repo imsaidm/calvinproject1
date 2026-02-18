@@ -169,6 +169,23 @@ const STYLES: Record<string, StyleConfig> = {
         outroBackground: '#0a0a0a',
         outroCta: '#ef4444',
     },
+
+    Cartoon: {
+        primaryColor: '#7c3aed',
+        accentColor: '#f59e0b',
+        backgroundColor: '#fef3c7',
+        introGradient: 'linear-gradient(135deg, #7c3aed 0%, #ec4899 30%, #f59e0b 70%, #10b981 100%)',
+        introGlow: '#f59e0b30',
+        sceneOverlayGradient: 'linear-gradient(to bottom, rgba(254,243,199,0) 0%, rgba(254,243,199,0.1) 50%, rgba(0,0,0,0.75) 100%)',
+        accentLineGlow: true,
+        fontFamily: "'Comic Sans MS', 'Segoe UI', 'Arial Rounded MT Bold', sans-serif",
+        titleFontWeight: 900,
+        subtitleBg: 'rgba(124, 58, 237, 0.85)',
+        subtitleBorder: '3px solid rgba(245, 158, 11, 0.6)',
+        musicFile: 'animated.mp3',
+        outroBackground: '#7c3aed',
+        outroCta: '#fbbf24',
+    },
 };
 
 /**

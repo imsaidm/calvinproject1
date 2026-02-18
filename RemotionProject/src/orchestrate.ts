@@ -17,7 +17,7 @@ const execPromise = util.promisify(exec);
 const videoSchema = z.object({
     title: z.string().min(1).max(100),
     topic: z.string().min(1),
-    duration: z.string().regex(/^\d+s$/, "Duration must be like '30s', '60s'").default("30s"),
+    duration: z.string().regex(/^\d+s$/, "Duration must be like '30s', '60s'").default("90s"),
     style: z.string().default("Documentary"),
     musicTrack: z.string().optional()
 });
@@ -90,15 +90,45 @@ async function main() {
         let images: string[] = [];
         let videoClips: string[] = [];
         const pexelsKey = process.env.PEXELS_API_KEY;
+        const isCartoonStyle = inputs.style === 'Cartoon' || inputs.style === 'ExplainLikeIm5';
 
-        if (pexelsKey) {
-            // Fetch 9 images
+        if (isCartoonStyle) {
+            // Use Pollinations.ai for cartoon/illustration style images (FREE, no API key)
+            console.log("🎨 Generating AI cartoon images via Pollinations.ai...");
+            for (const query of imageQueries) {
+                try {
+                    const cartoonPrompt = `${query}, cartoon illustration style, colorful, vibrant, professional animation, high quality`;
+                    const encodedPrompt = encodeURIComponent(cartoonPrompt);
+                    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1600&height=900&nologo=true&seed=${Math.floor(Math.random() * 99999)}`;
+
+                    // Verify the URL works by doing a HEAD request with timeout
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 15000);
+                    const res = await fetch(imageUrl, { method: 'HEAD', signal: controller.signal });
+                    clearTimeout(timeout);
+
+                    if (res.ok) {
+                        images.push(imageUrl);
+                        console.log(`   ✅ AI cartoon image: "${query}"`);
+                    } else {
+                        throw new Error(`HTTP ${res.status}`);
+                    }
+                } catch (e: any) {
+                    console.warn(`   ⚠️ Pollinations failed for "${query}": ${e.message}`);
+                    // Fallback to picsum
+                    images.push(`https://picsum.photos/seed/${encodeURIComponent(query + Date.now())}/1600/900`);
+                }
+            }
+            // No video clips for cartoon style (stock videos don't match cartoon aesthetic)
+            videoClips = ['', '', ''];
+        } else if (pexelsKey) {
+            // Fetch 9 images from Pexels (improved queries)
             console.log("🖼️ Fetching 9 images from Pexels API...");
             for (const query of imageQueries) {
                 try {
                     // Randomize page to get diverse results
                     const page = Math.floor(Math.random() * 3) + 1;
-                    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=3&page=${page}&orientation=landscape`, {
+                    const res = await fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=5&page=${page}&orientation=landscape`, {
                         headers: { Authorization: pexelsKey }
                     });
                     if (res.ok) {

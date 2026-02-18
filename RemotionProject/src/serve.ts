@@ -364,7 +364,7 @@ app.get('/api/autofill', autofillLimiter, async (req, res) => {
 
         const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-        const styles = ['Documentary', 'Cyberpunk', 'Minimalist', 'Cinematic', 'ExplainLikeIm5', 'NatureDocs', 'TechReview', 'Horror'];
+        const styles = ['Documentary', 'Cyberpunk', 'Minimalist', 'Cinematic', 'ExplainLikeIm5', 'NatureDocs', 'TechReview', 'Horror', 'Cartoon'];
         const durations = ['30s', '60s', '90s', '120s', '150s', '180s'];
 
         // Niche parameter — defaults to AI
@@ -414,7 +414,7 @@ RULES:
 - The title must be click-worthy and engaging
 - The topic description should be detailed enough to guide AI video creation
 - The style MUST be exactly one of the AVAILABLE STYLES listed above — pick a DIFFERENT style each time, match the style to the topic
-- The duration MUST be exactly one of the AVAILABLE DURATIONS listed above — prefer 120s or 180s for longer, more valuable content
+- The duration MUST be exactly one of the AVAILABLE DURATIONS listed above — STRONGLY prefer 90s, 120s, or 180s for more valuable, story-rich content
 - Output ONLY the JSON, nothing else`
             }]
         });
