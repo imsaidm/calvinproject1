@@ -94,14 +94,49 @@ async function main() {
 
         if (isCartoonStyle) {
             // Use Pollinations.ai for cartoon/illustration style images (FREE, no API key)
-            console.log("🎨 Generating AI cartoon images via Pollinations.ai...");
-            for (const query of imageQueries) {
+            // Pre-download images to local files so Remotion doesn't need network access during render
+            console.log("🎨 Generating & downloading AI cartoon images via Pollinations.ai...");
+            const imgDir = path.join(process.cwd(), 'public', 'ai-images');
+            if (!fs.existsSync(imgDir)) fs.mkdirSync(imgDir, { recursive: true });
+
+            for (let qi = 0; qi < imageQueries.length; qi++) {
+                const query = imageQueries[qi];
                 const cartoonPrompt = `${query}, cartoon illustration style, colorful, vibrant, professional animation, high quality`;
                 const encodedPrompt = encodeURIComponent(cartoonPrompt);
                 const seed = Math.floor(Math.random() * 99999);
                 const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=1600&height=900&nologo=true&seed=${seed}`;
-                images.push(imageUrl);
-                console.log(`   ✅ AI cartoon image: "${query}"`);
+                const localFile = path.join(imgDir, `cartoon_${Date.now()}_${qi}.jpg`);
+
+                let downloaded = false;
+                for (let attempt = 1; attempt <= 2; attempt++) {
+                    try {
+                        console.log(`   ⬇️ Downloading image ${qi + 1}/${imageQueries.length} (attempt ${attempt})...`);
+                        const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(45000) });
+                        if (imgRes.ok) {
+                            const buffer = Buffer.from(await imgRes.arrayBuffer());
+                            if (buffer.length > 5000) {
+                                fs.writeFileSync(localFile, buffer);
+                                images.push(`/ai-images/${path.basename(localFile)}`);
+                                console.log(`   ✅ AI cartoon image saved: ${path.basename(localFile)} (${(buffer.length / 1024).toFixed(0)} KB)`);
+                                downloaded = true;
+                                break;
+                            }
+                        }
+                    } catch (e: any) {
+                        console.warn(`   ⚠️ Download attempt ${attempt} failed: ${e.message}`);
+                    }
+                }
+
+                if (!downloaded) {
+                    // Fallback: generate a solid-color SVG placeholder with the style color
+                    const colors = ['#7C3AED', '#F59E0B', '#EC4899', '#3B82F6', '#10B981', '#EF4444', '#8B5CF6', '#F97316', '#06B6D4'];
+                    const color = colors[qi % colors.length];
+                    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><rect width="1600" height="900" fill="${color}"/><text x="800" y="450" text-anchor="middle" font-size="48" fill="white" font-family="Arial">${query.substring(0, 40)}</text></svg>`;
+                    const svgFile = localFile.replace('.jpg', '.svg');
+                    fs.writeFileSync(svgFile, svgContent);
+                    images.push(`/ai-images/${path.basename(svgFile)}`);
+                    console.log(`   ⚠️ Using color placeholder for: "${query}"`);
+                }
             }
             // No video clips for cartoon style (stock videos don't match cartoon aesthetic)
             videoClips = ['', '', ''];
