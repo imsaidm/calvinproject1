@@ -1,5 +1,12 @@
 import React from 'react';
-import { AbsoluteFill, Img, OffthreadVideo, interpolate, useCurrentFrame, useVideoConfig } from 'remotion';
+import { AbsoluteFill, Img, OffthreadVideo, interpolate, useCurrentFrame, useVideoConfig, staticFile } from 'remotion';
+
+// Helper: resolve image source - use staticFile() for local paths, pass through URLs
+const resolveImageSrc = (src: string): string => {
+    if (src.startsWith('http://') || src.startsWith('https://')) return src;
+    // Local path: strip leading slash and use staticFile()
+    return staticFile(src.replace(/^\//, ''));
+};
 
 /**
  * CinematicBackground - Single image with slow Ken Burns effect.
@@ -33,7 +40,7 @@ export const CinematicBackground: React.FC<{
     return (
         <AbsoluteFill>
             <Img
-                src={imageUrl}
+                src={resolveImageSrc(imageUrl)}
                 style={{
                     width: '100%',
                     height: '100%',
@@ -162,7 +169,7 @@ export const MultiVisualBackground: React.FC<{
                 return (
                     <AbsoluteFill key={`v-${i}`} style={{ opacity }}>
                         <Img
-                            src={visual.url}
+                            src={resolveImageSrc(visual.url)}
                             style={{
                                 width: '100%',
                                 height: '100%',
@@ -206,7 +213,7 @@ export const Slideshow: React.FC<{
         <AbsoluteFill>
             <AbsoluteFill style={{ opacity }}>
                 <Img
-                    src={images[currentImageIndex]}
+                    src={resolveImageSrc(images[currentImageIndex])}
                     style={{
                         width: '100%', height: '100%', objectFit: 'cover',
                         transform: `scale(${scale}) translateY(${translate}px)`
@@ -216,7 +223,7 @@ export const Slideshow: React.FC<{
             {isFading && (
                 <AbsoluteFill style={{ opacity: nextOpacity }}>
                     <Img
-                        src={images[nextImageIndex]}
+                        src={resolveImageSrc(images[nextImageIndex])}
                         style={{
                             width: '100%', height: '100%', objectFit: 'cover',
                             transform: `scale(1.1)`
