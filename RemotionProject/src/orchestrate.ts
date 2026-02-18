@@ -6,6 +6,7 @@ import util from 'util';
 import fs from 'fs';
 import path from 'path';
 import dotenv from 'dotenv';
+import axios from 'axios';
 import { transcribeForSubtitles, SubtitleChunk } from './services/transcribe';
 import { getStyleConfig } from './visualStyles';
 
@@ -111,16 +112,21 @@ async function main() {
                 for (let attempt = 1; attempt <= 2; attempt++) {
                     try {
                         console.log(`   ⬇️ Downloading image ${qi + 1}/${imageQueries.length} (attempt ${attempt})...`);
-                        const imgRes = await fetch(imageUrl, { signal: AbortSignal.timeout(45000) });
-                        if (imgRes.ok) {
-                            const buffer = Buffer.from(await imgRes.arrayBuffer());
-                            if (buffer.length > 5000) {
-                                fs.writeFileSync(localFile, buffer);
-                                images.push(`/ai-images/${path.basename(localFile)}`);
-                                console.log(`   ✅ AI cartoon image saved: ${path.basename(localFile)} (${(buffer.length / 1024).toFixed(0)} KB)`);
-                                downloaded = true;
-                                break;
-                            }
+                        const imgRes = await axios.get(imageUrl, {
+                            responseType: 'arraybuffer',
+                            timeout: 60000,
+                            maxRedirects: 5,
+                            headers: { 'User-Agent': 'Mozilla/5.0 VideoEngine/2.0' }
+                        });
+                        const buffer = Buffer.from(imgRes.data);
+                        if (buffer.length > 5000) {
+                            fs.writeFileSync(localFile, buffer);
+                            images.push(`/ai-images/${path.basename(localFile)}`);
+                            console.log(`   ✅ AI cartoon image saved: ${path.basename(localFile)} (${(buffer.length / 1024).toFixed(0)} KB)`);
+                            downloaded = true;
+                            break;
+                        } else {
+                            console.warn(`   ⚠️ Image too small (${buffer.length} bytes), retrying...`);
                         }
                     } catch (e: any) {
                         console.warn(`   ⚠️ Download attempt ${attempt} failed: ${e.message}`);
@@ -128,14 +134,28 @@ async function main() {
                 }
 
                 if (!downloaded) {
-                    // Fallback: generate a solid-color SVG placeholder with the style color
-                    const colors = ['#7C3AED', '#F59E0B', '#EC4899', '#3B82F6', '#10B981', '#EF4444', '#8B5CF6', '#F97316', '#06B6D4'];
-                    const color = colors[qi % colors.length];
-                    const svgContent = `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><rect width="1600" height="900" fill="${color}"/><text x="800" y="450" text-anchor="middle" font-size="48" fill="white" font-family="Arial">${query.substring(0, 40)}</text></svg>`;
-                    const svgFile = localFile.replace('.jpg', '.svg');
-                    fs.writeFileSync(svgFile, svgContent);
-                    images.push(`/ai-images/${path.basename(svgFile)}`);
-                    console.log(`   ⚠️ Using color placeholder for: "${query}"`);
+                    // Fallback: use a solid-color image from picsum (always works)
+                    const fallbackUrl = `https://picsum.photos/seed/${encodeURIComponent(query + qi)}/1600/900`;
+                    try {
+                        console.log(`   🔄 Trying picsum fallback for: "${query}"`);
+                        const fbRes = await axios.get(fallbackUrl, {
+                            responseType: 'arraybuffer',
+                            timeout: 15000,
+                            maxRedirects: 5
+                        });
+                        const fbBuffer = Buffer.from(fbRes.data);
+                        if (fbBuffer.length > 1000) {
+                            fs.writeFileSync(localFile, fbBuffer);
+                            images.push(`/ai-images/${path.basename(localFile)}`);
+                            console.log(`   ✅ Picsum fallback: ${path.basename(localFile)} (${(fbBuffer.length / 1024).toFixed(0)} KB)`);
+                        } else {
+                            throw new Error('Picsum too small');
+                        }
+                    } catch (pErr: any) {
+                        // Ultimate fallback: use the Pollinations URL directly (let Remotion try)
+                        images.push(imageUrl);
+                        console.log(`   ⚠️ Using direct URL fallback for: "${query}"`);
+                    }
                 }
             }
             // No video clips for cartoon style (stock videos don't match cartoon aesthetic)
