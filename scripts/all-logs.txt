@@ -1,0 +1,60 @@
+Video Engine running on http://localhost:4000
+Video Library: http://localhost:4000/library
+Serving videos from: /app/out
+Job queued: job_1771429295346_w0sv2c - "Quick Bee Test"
+Processing job: job_1771429295346_w0sv2c - "Quick Bee Test"
+Executing: npm run orchestrate -- --title "Quick Bee Test" --topic "How bees communicate through waggle dance" --style "Documentary" --duration "30s"
+Job job_1771429295346_w0sv2c failed: Command failed: npm run orchestrate -- --title "Quick Bee Test" --topic "How bees communicate through waggle dance" --style "Documentary" --duration "30s"
+⚠️ WaveSpeed Failed: WaveSpeed: No audio URL in response or timed out
+🔄 Engaging Linux Fallback (espeak-ng + ffmpeg)...
+❌ Rendering Error: Error: Command failed: npx remotion render src/index.ts AiVideo out/quick_bee_test.mp4 --props=./temp-props-1771429617295.json --log=error --timeout=180000 --concurrency=1 --gl=angle-egl --browser-executable="/usr/bin/chromium"
+TypeError: angle-egl is not a valid GL backend. Accepted values: swangle, angle, egl, swiftshader
+    at Object.validateOpenGlRenderer (/app/node_modules/@remotion/renderer/dist/validate-opengl-renderer.js:11:15)
+    at Object.setChromiumOpenGlRenderer (/app/node_modules/@remotion/cli/dist/config/chromium-flags.js:24:32)
+    at parseCommandLine (/app/node_modules/@remotion/cli/dist/parse-command-line.js:103:25)
+    at initializeCli (/app/node_modules/@remotion/cli/dist/initialize-cli.js:9:47)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async cli (/app/node_modules/@remotion/cli/dist/index.js:66:5)
+
+    at genericNodeError (node:internal/errors:984:15)
+    at wrappedFn (node:internal/errors:538:14)
+    at ChildProcess.exithandler (node:child_process:422:12)
+    at ChildProcess.emit (node:events:524:28)
+    at ChildProcess.emit (node:domain:489:12)
+    at maybeClose (node:internal/child_process:1104:16)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'npx remotion render src/index.ts AiVideo out/quick_bee_test.mp4 --props=./temp-props-1771429617295.json --log=error --timeout=180000 --concurrency=1 --gl=angle-egl --browser-executable="/usr/bin/chromium"',
+  stdout: '',
+  stderr: 'TypeError: angle-egl is not a valid GL backend. Accepted values: swangle, angle, egl, swiftshader\n' +
+    '    at Object.validateOpenGlRenderer (/app/node_modules/@remotion/renderer/dist/validate-opengl-renderer.js:11:15)\n' +
+    '    at Object.setChromiumOpenGlRenderer (/app/node_modules/@remotion/cli/dist/config/chromium-flags.js:24:32)\n' +
+    '    at parseCommandLine (/app/node_modules/@remotion/cli/dist/parse-command-line.js:103:25)\n' +
+    '    at initializeCli (/app/node_modules/@remotion/cli/dist/initialize-cli.js:9:47)\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at async cli (/app/node_modules/@remotion/cli/dist/index.js:66:5)\n'
+}
+
+npm error path /app
+npm error command failed
+npm error signal SIGTERM
+npm error command sh -c ts-node src/serve.ts
+npm error A complete log of this run can be found in: /root/.npm/_logs/2026-02-18T15_40_55_782Z-debug-0.log
+Video Engine running on http://localhost:4000
+Video Library: http://localhost:4000/library
+Serving videos from: /app/out
+ValidationError: The 'X-Forwarded-For' header is set but the Express 'trust proxy' setting is false (default). This could indicate a misconfiguration which would prevent express-rate-limit from accurately identifying users. See https://express-rate-limit.github.io/ERR_ERL_UNEXPECTED_X_FORWARDED_FOR/ for more information.
+    at Object.xForwardedForHeader (/app/node_modules/express-rate-limit/dist/index.cjs:366:13)
+    at Object.wrappedValidations.<computed> [as xForwardedForHeader] (/app/node_modules/express-rate-limit/dist/index.cjs:680:22)
+    at Object.keyGenerator (/app/node_modules/express-rate-limit/dist/index.cjs:783:20)
+    at /app/node_modules/express-rate-limit/dist/index.cjs:844:32
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async /app/node_modules/express-rate-limit/dist/index.cjs:825:5 {
+  code: 'ERR_ERL_UNEXPECTED_X_FORWARDED_FOR',
+  help: 'https://express-rate-limit.github.io/ERR_ERL_UNEXPECTED_X_FORWARDED_FOR/'
+}
+Job queued: job_1771430073807_1zti4u - "Test Render"
+Processing job: job_1771430073807_1zti4u - "Test Render"
+Executing: npm run orchestrate -- --title "Test Render" --topic "How bees make honey" --style "Documentary" --duration "30s"

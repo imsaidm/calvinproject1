@@ -1,0 +1,129 @@
+{
+  "jobs": [
+    {
+      "id": "cfd75471-af8e-4df7-86ca-c30a60fe2d05",
+      "agentId": "main",
+      "name": "ai-business-exploration",
+      "enabled": true,
+      "createdAtMs": 1771346611324,
+      "updatedAtMs": 1771346611324,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 2 */2 * *",
+        "tz": "UTC"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Explore potential million-dollar SaaS business opportunities in AI, focusing on low-investment, high-revenue models that can be managed by 1-2 people. Analyze market trends, potential freelancer roles, and scalability strategies.",
+        "model": "anthropic/claude-3-opus-20240229",
+        "thinking": "comprehensive",
+        "timeoutSeconds": 600
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "telegram"
+      },
+      "state": {
+        "nextRunAtMs": 1771466400000
+      }
+    },
+    {
+      "id": "e258e6f3-c7cb-414f-872c-73037ddc79d8",
+      "agentId": "main",
+      "name": "openclaw-morning-surprise",
+      "enabled": true,
+      "createdAtMs": 1771347614987,
+      "updatedAtMs": 1771398000032,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 7 * * *",
+        "tz": "UTC"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Generate an innovative OpenClaw improvement suggestion. Focus on enhancing user experience, productivity, or system capabilities. Provide a detailed, actionable recommendation with potential implementation steps.",
+        "model": "anthropic/claude-3-opus-20240229",
+        "thinking": "comprehensive",
+        "timeoutSeconds": 300
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "telegram"
+      },
+      "state": {
+        "nextRunAtMs": 1771484400000,
+        "lastRunAtMs": 1771398000006,
+        "lastStatus": "error",
+        "lastDurationMs": 26,
+        "lastError": "model not allowed: anthropic/claude-3-opus-20240229",
+        "consecutiveErrors": 1
+      }
+    },
+    {
+      "id": "2d1bc6ce-9233-492e-bbe4-2fc3fbf47a36",
+      "name": "morning-briefing",
+      "enabled": true,
+      "createdAtMs": 1771301659179,
+      "updatedAtMs": 1771419631266,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 7 * * *",
+        "tz": "America/Chicago"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "Good morning Calvin! Please provide a concise daily briefing in bullet points: MARKETS: US stock market overview, fastest growing stocks, top AI stocks. AI/TECH: Top AI trends. US LOCAL NEWS: Iron River MI, Findlay OH, Mauston WI, Cassville WI, Lancaster WI, Snowflake AZ, Hayward WI, Homosassa FL. WORLD: Abuja Nigeria, North Korea, Tasmania, Malaysia, New Zealand. POLITICS: MAGA impact on America and allies. HEALTH: One tip for active older adults. MOTIVATION: Quote from a great leader. Keep it brief.",
+        "model": "anthropic/claude-3-5-haiku-latest",
+        "timeoutSeconds": 120
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "last"
+      },
+      "state": {
+        "nextRunAtMs": 1771506000000,
+        "lastRunAtMs": 1771419600008,
+        "lastStatus": "ok",
+        "lastDurationMs": 31258,
+        "consecutiveErrors": 0
+      }
+    },
+    {
+      "id": "b03321da-010e-416e-862d-68771b72f7a2",
+      "name": "mastermind-roundtable",
+      "enabled": true,
+      "createdAtMs": 1771303655960,
+      "updatedAtMs": 1771423226677,
+      "schedule": {
+        "kind": "cron",
+        "expr": "0 8 * * *",
+        "tz": "America/Chicago"
+      },
+      "sessionTarget": "isolated",
+      "wakeMode": "now",
+      "payload": {
+        "kind": "agentTurn",
+        "message": "You are hosting a Mastermind Roundtable with three legendary leaders: George Washington (leadership, strategy, nation-building), Napoleon Hill (mindset, success principles, wealth), and Sam Walton (business, retail, entrepreneurship). Each leader gives a brief insight on todays topic. Pick a relevant topic based on current events. Format: each leader speaks 2-3 sentences in their voice and style, then end with one actionable takeaway Calvin can apply today. Keep it concise and powerful.",
+        "model": "anthropic/claude-3-5-haiku-latest",
+        "timeoutSeconds": 120
+      },
+      "delivery": {
+        "mode": "announce",
+        "channel": "last"
+      },
+      "state": {
+        "nextRunAtMs": 1771509600000,
+        "lastRunAtMs": 1771423200013,
+        "lastStatus": "ok",
+        "lastDurationMs": 26664,
+        "consecutiveErrors": 0
+      }
+    }
+  ]
+}

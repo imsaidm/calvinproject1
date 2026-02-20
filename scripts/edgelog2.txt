@@ -1,0 +1,49 @@
+Stderr:    ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+⚠️ WaveSpeed Failed: WaveSpeed: No audio URL in response or timed out
+⚠️ Edge TTS Failed: Command failed: python3 -m pip install edge-tts --quiet --break-system-packages 2>/dev/null || pip3 install edge-tts --quiet 2>/dev/null || python3 -m ensurepip --default-pip && python3 -m pip install edge-tts --quiet --break-system-packages
+/usr/bin/python3: No module named ensurepip
+
+🔄 Engaging Linux Fallback (espeak-ng + ffmpeg)...
+
+Music library: 4/13 tracks available for style="Documentary"
+AUTH DENIED: POST /trigger from 102.90.99.139
+AUTH DENIED: POST /trigger from 102.90.99.139
+AUTH DENIED: POST /trigger from 102.90.99.139
+AUTH DENIED: POST /trigger from 102.90.99.139
+AUTH DENIED: POST /trigger from 102.90.99.139
+Music library: 4/13 tracks available for style="Documentary"
+AUTH DENIED: POST /trigger from 197.211.52.75
+AUTH DENIED: POST /trigger from 197.211.52.75
+AUTH DENIED: POST /trigger from 102.90.99.139
+Music library: 4/13 tracks available for style="Documentary"
+AUTH DENIED: POST /trigger from 104.172.238.112
+Job queued: job_1771454020473_pd09v0 - "Cat Astronauts"
+Processing job: job_1771454020473_pd09v0 - "Cat Astronauts"
+Executing: npm run orchestrate -- --title "Cat Astronauts" --topic "Cats explore Mars" --style "Cartoon" --duration "30s"
+Music library: 4/13 tracks available for style="Documentary"
+total 413044
+-rw-r--r-- 1 root root    12464 Feb 18 18:22 cat_astronauts_thumbnail.jpg
+-rw-r--r-- 1 root root     1255 Feb 18 18:22 cat_astronauts_metadata.json
+-rw-r--r-- 1 root root     1115 Feb 18 18:22 cat_astronauts_script.txt
+-rw-r--r-- 1 root root 17765856 Feb 18 18:22 cat_astronauts.mp4
+-rw-r--r-- 1 root root    12461 Feb 18 16:27 test_render_thumbnail.jpg
+-rw-r--r-- 1 root root     1432 Feb 18 16:27 test_render_metadata.json
+-rw-r--r-- 1 root root     1305 Feb 18 16:27 test_render_script.txt
+{"service":"AI Video Engine","status":"online","version":"2.0","queue":{"pending":0,"processing":true}}

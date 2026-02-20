@@ -55,11 +55,10 @@ app.use(cors({
     credentials: true
 }));
 
-// Rate limiting — general (500 req / 15 min)
-// Dashboard polls health/videos/queue every 30s = ~90 req/15min per client
+// Rate limiting — general (100 req / 15 min)
 const generalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 500,
+    max: 100,
     message: { error: 'Too many requests. Please try again later.' },
     standardHeaders: true,
     legacyHeaders: false,

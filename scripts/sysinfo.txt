@@ -1,0 +1,15 @@
+               total        used        free      shared  buff/cache   available
+Mem:           7.8Gi       2.3Gi       654Mi       1.6Mi       5.2Gi       5.5Gi
+Swap:             0B          0B          0B
+===DOCKER===
+CONTAINER ID   NAME               CPU %     MEM USAGE / LIMIT     MEM %     NET I/O          BLOCK I/O        PIDS
+39c5db35ce24   csh-video-engine   0.00%     522.8MiB / 7.756GiB   6.58%     626kB / 9.96MB   351MB / 66.4MB   23
+===MEMORY_LIMIT===
+Memory=0 Swap=0
+===VIDEOS===
+ls: cannot access '/app/out/*.mp4': No such file or directory
+===WAVESPEED===
+WAVESPEED_API_KEY=d8f1c1c89909985372e91c0d36436eaf43ae12b146cb315e7497dd82667ade62
+===CHROMIUM===
+Chromium 145.0.7632.75 built on Debian GNU/Linux 12 (bookworm)
+/usr/bin/chromium

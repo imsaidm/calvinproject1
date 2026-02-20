@@ -1,0 +1,74 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.2.12",
+    "lastTouchedAt": "2026-02-18T14:12:16.852Z"
+  },
+  "wizard": {
+    "lastRunAt": "2026-02-14T00:21:04.949Z",
+    "lastRunVersion": "2026.2.12",
+    "lastRunCommand": "doctor",
+    "lastRunMode": "local"
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-3-5-haiku-latest"
+      },
+      "workspace": "/root/.openclaw/workspace",
+      "contextTokens": 16000,
+      "compaction": {
+        "mode": "default"
+      },
+      "maxConcurrent": 1,
+      "subagents": {
+        "maxConcurrent": 1
+      },
+      "sandbox": {
+        "mode": "off"
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "identity": {
+          "name": "YukonCal",
+          "theme": "An AI assistant — a loyal digital companion living on Calvin's VPS. Think of me as the \"house guardian\" of this server.",
+          "emoji": "🐾",
+          "avatar": "_(not set yet)"
+        }
+      }
+    ]
+  },
+  "tools": {
+    "deny": []
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "botToken": "8500135604:AAFmrVViD0L5sHt27nsYRuU4ZOUp7rAsv8k",
+      "groupPolicy": "allowlist",
+      "streamMode": "partial"
+    }
+  },
+  "gateway": {
+    "auth": {
+      "mode": "token",
+      "token": "8f16a21f7f1341d65f739784714df7ce4c3997106c51d6b7b03079962d8ef036"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": {
+        "enabled": true
+      }
+    }
+  }
+}

@@ -97,7 +97,7 @@ const Dashboard = ({ onLogout, apiKey }) => {
             fetchVideos();
             fetchQueue();
             checkHealth();
-        }, 8000);
+        }, 30000);
 
         return () => clearInterval(interval);
     }, [fetchVideos, fetchQueue, checkHealth]);
@@ -106,7 +106,7 @@ const Dashboard = ({ onLogout, apiKey }) => {
     useEffect(() => {
         if (activeJobs.length === 0 || activeJobs.every(j => j.status === 'completed' || j.status === 'failed')) return;
 
-        const interval = setInterval(pollActiveJobs, 4000);
+        const interval = setInterval(pollActiveJobs, 10000);
         return () => clearInterval(interval);
     }, [activeJobs, pollActiveJobs]);
 

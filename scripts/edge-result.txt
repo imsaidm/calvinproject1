@@ -1,0 +1,33 @@
+===QUEUE===
+{"queue":0,"processing":false,"completed":0,"failed":1,"totalJobs":1}
+===LOGS===
+    'Rendering 88/2130\n' +
+    'Rendering 89/2130\n' +
+    'Rendering 90/2130\n' +
+    '\n' +
+    'Symbolicating minified error message...\n' +
+    'Error loading image with src: https://image.pollinations.ai/prompt/curious%20orange%20tabby%20cat%20peering%20through%20telescope%20night%2C%20cartoon%20illustration%20style%2C%20colorful%2C%20vibrant%2C%20professional%20animation%2C%20high%20quality?width=1600&height=900&nologo=true&seed=20376\n' +
+    'An error occurred while rendering frame 90:\n' +
+    '\n' +
+    'at node_modules/remotion/dist/cjs/cancel-render.js:38\n' +
+    '36 │     error = err;\n' +
+    '37 │ }\n' +
+    "38 │ else if (typeof err === 'string') {\n" +
+    '39 │     error = Error(err);\n' +
+    '40 │ }\n' +
+    '41 │ else {\n' +
+    '\n' +
+    'at (node_modules/remotion/dist/cjs/Img.js:59)\n' +
+    'at Nb (node_modules/react-dom/cjs/react-dom.production.min.js:53)\n' +
+    'at Tb (node_modules/react-dom/cjs/react-dom.production.min.js:53)\n' +
+    'at Ub (node_modules/react-dom/cjs/react-dom.production.min.js:54)\n' +
+    'at nf (node_modules/react-dom/cjs/react-dom.production.min.js:104)\n' +
+    'at se (node_modules/react-dom/cjs/react-dom.production.min.js:105)\n' +
+    'at (node_modules/react-dom/cjs/react-dom.production.min.js:116)\n' +
+    'at Qk (node_modules/react-dom/cjs/react-dom.production.min.js:272)\n' +
+    'at Jb (node_modules/react-dom/cjs/react-dom.production.min.js:51)\n' +
+    'at hd (node_modules/react-dom/cjs/react-dom.production.min.js:108)\n' +
+    'at fd (node_modules/react-dom/cjs/react-dom.production.min.js:73)\n',
+  stderr: ' Error  Error loading image with src: https://image.pollinations.ai/prompt/curious%20orange%20tabby%20cat%20peering%20through%20telescope%20night%2C%20cartoon%20illustration%20style%2C%20colorful%2C%20vibrant%2C%20professional%20animation%2C%20high%20quality?width=1600&height=900&nologo=true&seed=20376\n'
+}
+

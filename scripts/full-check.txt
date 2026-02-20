@@ -1,0 +1,73 @@
+Job queued: job_1771428310452_2shmbd - "Amazing World of Bees"
+Processing job: job_1771428310452_2shmbd - "Amazing World of Bees"
+Executing: npm run orchestrate -- --title "Amazing World of Bees" --topic "How honey bees build incredible hive structures and communicate through dance" --style "Cartoon" --duration "90s"
+Job job_1771428310452_2shmbd failed: Command failed: npm run orchestrate -- --title "Amazing World of Bees" --topic "How honey bees build incredible hive structures and communicate through dance" --style "Cartoon" --duration "90s"
+⚠️ WaveSpeed Failed: WaveSpeed: No audio URL in response or timed out
+🔄 Engaging Linux Fallback (espeak-ng + ffmpeg)...
+❌ Rendering Error: Error: Command failed: npx remotion render src/index.ts AiVideo out/amazing_world_of_bees.mp4 --props=./temp-props-1771428633779.json --log=error --timeout=120000
+/app/node_modules/@remotion/renderer/dist/browser/Connection.js:200
+                error: new Errors_1.ProtocolError(),
+                       ^
+
+ProtocolError: Protocol error (Target.setAutoAttach): Target closed. https://www.remotion.dev/docs/target-closed
+    at /app/node_modules/@remotion/renderer/dist/browser/Connection.js:200:24
+    at new Promise (<anonymous>)
+    at CDPSession.send (/app/node_modules/@remotion/renderer/dist/browser/Connection.js:196:16)
+    at Page._Page_initialize (/app/node_modules/@remotion/renderer/dist/browser/BrowserPage.js:233:57)
+    at Page._create (/app/node_modules/@remotion/renderer/dist/browser/BrowserPage.js:53:84)
+    at /app/node_modules/@remotion/renderer/dist/browser/Target.js:87:43
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Target.page (/app/node_modules/@remotion/renderer/dist/browser/Target.js:98:23)
+    at async Promise.all (index 0)
+    at async BrowserContext.pages (/app/node_modules/@remotion/renderer/dist/browser/Browser.js:200:23) {
+  originalMessage: ''
+}
+
+Node.js v20.20.0
+
+    at genericNodeError (node:internal/errors:984:15)
+    at wrappedFn (node:internal/errors:538:14)
+    at ChildProcess.exithandler (node:child_process:422:12)
+    at ChildProcess.emit (node:events:524:28)
+    at ChildProcess.emit (node:domain:489:12)
+    at maybeClose (node:internal/child_process:1104:16)
+    at Process.ChildProcess._handle.onexit (node:internal/child_process:304:5) {
+  code: 1,
+  killed: false,
+  signal: null,
+  cmd: 'npx remotion render src/index.ts AiVideo out/amazing_world_of_bees.mp4 --props=./temp-props-1771428633779.json --log=error --timeout=120000',
+  stdout: 'Bundling 6%\n' +
+    'Bundling 18%\n' +
+    'Bundling 58%\n' +
+    'Bundling 63%\n' +
+    'Bundling 69%\n' +
+    'Bundling 74%\n' +
+    'Bundling 80%\n' +
+    'Bundling 85%\n' +
+    'Bundling 90%\n' +
+    'Bundling 95%\n' +
+    'Copying public dir 0B\n' +
+    'Copying public dir 0B\n' +
+    'Copying public dir 11MB\n' +
+    'Copying public dir 25MB\n',
+  stderr: '/app/node_modules/@remotion/renderer/dist/browser/Connection.js:200\n' +
+    '                error: new Errors_1.ProtocolError(),\n' +
+    '                       ^\n' +
+    '\n' +
+    'ProtocolError: Protocol error (Target.setAutoAttach): Target closed. https://www.remotion.dev/docs/target-closed\n' +
+    '    at /app/node_modules/@remotion/renderer/dist/browser/Connection.js:200:24\n' +
+    '    at new Promise (<anonymous>)\n' +
+    '    at CDPSession.send (/app/node_modules/@remotion/renderer/dist/browser/Connection.js:196:16)\n' +
+    '    at Page._Page_initialize (/app/node_modules/@remotion/renderer/dist/browser/BrowserPage.js:233:57)\n' +
+    '    at Page._create (/app/node_modules/@remotion/renderer/dist/browser/BrowserPage.js:53:84)\n' +
+    '    at /app/node_modules/@remotion/renderer/dist/browser/Target.js:87:43\n' +
+    '    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n' +
+    '    at async Target.page (/app/node_modules/@remotion/renderer/dist/browser/Target.js:98:23)\n' +
+    '    at async Promise.all (index 0)\n' +
+    '    at async BrowserContext.pages (/app/node_modules/@remotion/renderer/dist/browser/Browser.js:200:23) {\n' +
+    "  originalMessage: ''\n" +
+    '}\n' +
+    '\n' +
+    'Node.js v20.20.0\n'
+}
+

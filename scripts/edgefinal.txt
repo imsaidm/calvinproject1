@@ -1,0 +1,87 @@
+    'Symbolicating minified error message...\n' +
+    'Error loading image with src: http://localhost:3000/ai-images/cartoon_1771436565519_0.jpg\n' +
+    'An error occurred while rendering frame 90:\n' +
+    '\n' +
+    'at node_modules/remotion/dist/cjs/cancel-render.js:38\n' +
+    '36 │     error = err;\n' +
+    '37 │ }\n' +
+    "38 │ else if (typeof err === 'string') {\n" +
+    '39 │     error = Error(err);\n' +
+    '40 │ }\n' +
+    '41 │ else {\n' +
+    '\n' +
+    'at (node_modules/remotion/dist/cjs/Img.js:59)\n' +
+    'at Nb (node_modules/react-dom/cjs/react-dom.production.min.js:53)\n' +
+    'at Tb (node_modules/react-dom/cjs/react-dom.production.min.js:53)\n' +
+    'at Ub (node_modules/react-dom/cjs/react-dom.production.min.js:54)\n' +
+    'at nf (node_modules/react-dom/cjs/react-dom.production.min.js:104)\n' +
+    'at se (node_modules/react-dom/cjs/react-dom.production.min.js:105)\n' +
+    'at (node_modules/react-dom/cjs/react-dom.production.min.js:116)\n' +
+    'at Qk (node_modules/react-dom/cjs/react-dom.production.min.js:272)\n' +
+    'at Jb (node_modules/react-dom/cjs/react-dom.production.min.js:51)\n' +
+    'at hd (node_modules/react-dom/cjs/react-dom.production.min.js:108)\n' +
+    'at fd (node_modules/react-dom/cjs/react-dom.production.min.js:73)\n',
+  stderr: ' Error  Error loading image with src: http://localhost:3000/ai-images/cartoon_1771436565519_0.jpg\n'
+}
+
+npm error path /app
+npm error command failed
+npm error signal SIGTERM
+npm error command sh -c ts-node src/serve.ts
+npm error A complete log of this run can be found in: /root/.npm/_logs/2026-02-18T17_42_25_901Z-debug-0.log
+Video Engine running on http://localhost:4000
+Video Library: http://localhost:4000/library
+Serving videos from: /app/out
+Job queued: job_1771437388427_o0henx - "Cat Astronauts"
+Processing job: job_1771437388427_o0henx - "Cat Astronauts"
+Executing: npm run orchestrate -- --title "Cat Astronauts" --topic "Cats explore Mars" --style "Cartoon" --duration "30s"
+Music library: 1/5 tracks available for style="ExplainLikeIm5"
+AUTH DENIED: POST /trigger from 68.231.154.191
+Job job_1771437388427_o0henx completed
+Stderr:    ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+   ⚠️ Download attempt 1 failed: Request failed with status code 530
+   ⚠️ Download attempt 2 failed: Request failed with status code 530
+⚠️ WaveSpeed Failed: WaveSpeed: No audio URL in response or timed out
+⚠️ Edge TTS Failed: Command failed: python3 -m pip install edge-tts --quiet --break-system-packages 2>/dev/null || pip3 install edge-tts --quiet 2>/dev/null || python3 -m ensurepip --default-pip && python3 -m pip install edge-tts --quiet --break-system-packages
+/usr/bin/python3: No module named ensurepip
+
+🔄 Engaging Linux Fallback (espeak-ng + ffmpeg)...
+
+Music library: 4/13 tracks available for style="Documentary"
+AUTH DENIED: POST /trigger from 102.90.99.139
+AUTH DENIED: POST /trigger from 102.90.99.139
+AUTH DENIED: POST /trigger from 102.90.99.139
+AUTH DENIED: POST /trigger from 102.90.99.139
+AUTH DENIED: POST /trigger from 102.90.99.139
+Music library: 4/13 tracks available for style="Documentary"
+AUTH DENIED: POST /trigger from 197.211.52.75
+AUTH DENIED: POST /trigger from 197.211.52.75
+AUTH DENIED: POST /trigger from 102.90.99.139
+Music library: 4/13 tracks available for style="Documentary"
+AUTH DENIED: POST /trigger from 104.172.238.112
+Job queued: job_1771454020473_pd09v0 - "Cat Astronauts"
+Processing job: job_1771454020473_pd09v0 - "Cat Astronauts"
+Executing: npm run orchestrate -- --title "Cat Astronauts" --topic "Cats explore Mars" --style "Cartoon" --duration "30s"
+Music library: 4/13 tracks available for style="Documentary"
+total 402352
+-rw-r--r-- 1 root root  6815792 Feb 18 23:01 cat_astronauts.mp4
+-rw-r--r-- 1 root root    12464 Feb 18 18:22 cat_astronauts_thumbnail.jpg
+-rw-r--r-- 1 root root     1255 Feb 18 18:22 cat_astronauts_metadata.json
+-rw-r--r-- 1 root root     1115 Feb 18 18:22 cat_astronauts_script.txt
+-rw-r--r-- 1 root root    12461 Feb 18 16:27 test_render_thumbnail.jpg
+{"service":"AI Video Engine","status":"online","version":"2.0","queue":{"pending":0,"processing":true}}

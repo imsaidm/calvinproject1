@@ -1,0 +1,26 @@
+AUTH DENIED: POST /trigger from ::ffff:172.20.0.1
+Job queued: job_1771427603933_efvsnn - "Why Cats Rule Internet"
+Processing job: job_1771427603933_efvsnn - "Why Cats Rule Internet"
+Executing: npm run orchestrate -- --title "Why Cats Rule Internet" --topic "How cats became rulers of internet culture from LOLcats to TikTok" --style "Cartoon" --duration "90s"
+Job job_1771427603933_efvsnn failed: Command failed: npm run orchestrate -- --title "Why Cats Rule Internet" --topic "How cats became rulers of internet culture from LOLcats to TikTok" --style "Cartoon" --duration "90s"
+/app/node_modules/ts-node/src/index.ts:859
+    return new TSError(diagnosticText, diagnosticCodes, diagnostics);
+           ^
+TSError: ⨯ Unable to compile TypeScript:
+src/orchestrate.ts(276,17): error TS2339: Property 'getRandomTrackForStyle' does not exist on type 'typeof import("/app/src/music-library")'.
+
+    at createTSError (/app/node_modules/ts-node/src/index.ts:859:12)
+    at reportTSError (/app/node_modules/ts-node/src/index.ts:863:19)
+    at getOutput (/app/node_modules/ts-node/src/index.ts:1077:36)
+    at Object.compile (/app/node_modules/ts-node/src/index.ts:1433:41)
+    at Module.m._compile (/app/node_modules/ts-node/src/index.ts:1617:30)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Object.require.extensions.<computed> [as .ts] (/app/node_modules/ts-node/src/index.ts:1621:12)
+    at Module.load (node:internal/modules/cjs/loader:1266:32)
+    at Function.Module._load (node:internal/modules/cjs/loader:1091:12)
+    at Function.executeUserEntryPoint [as runMain] (node:internal/modules/run_main:164:12) {
+  diagnosticCodes: [ 2339 ]
+}
+
+Music library: 2/2 tracks available for style="Documentary"
+Music library: 2/2 tracks available for style="Documentary"

@@ -1,0 +1,5 @@
+-rw-r--r-- 1 root root 19M Feb 18 16:27 /app/out/test_render.mp4
+===QUEUE===
+{"queue":0,"processing":true,"completed":0,"failed":0,"totalJobs":1}
+===PROCESSING===
+{"service":"AI Video Engine","status":"online","version":"2.0","queue":{"pending":0,"processing":true}}
